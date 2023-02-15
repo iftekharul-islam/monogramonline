@@ -1,0 +1,651 @@
+<ystorews:ystorewsResponse xmlns:ystorews="urn:yahoo:sbs:ystorews" >
+  <Version>1.0</Version>
+
+  <ResponseResourceList>
+
+        <Catalog>
+
+              <ItemList>
+
+                    <Item>
+
+                        <ID>inpenepewich</ID>
+
+                        <Name>Inspirational Pendant Necklace Personalized with Charm</Name>
+
+                        <Code>
+
+                              <Value>JWCN-1181</Value>
+
+                        </Code>
+
+                        <Price>29.99 </Price>
+
+                        <SalePrice></SalePrice>
+
+                        <ShipWeight>0.10 </ShipWeight>
+
+                        <Orderable>Yes</Orderable>
+
+                        <Taxable>Yes</Taxable>
+
+                        <GiftCert>No</GiftCert>
+
+                        <Headline>Inspirational Pendant Necklace Personalized with Charm</Headline>
+
+                        <Caption>Give your loved one a special gift with this unique inspirational charms necklace.It is includes the option to personalize with your choice extra charms(*additional costs apply). </Caption>
+
+                        <Abstract></Abstract>
+
+                        <Label></Label>
+
+                        <ProductURL></ProductURL>
+
+                        <Condition>New</Condition>
+
+                        <CustomData>
+
+                            <Name>description</Name>
+
+                            <Value>Give your loved one a special gift with this unique inspirational charms necklace.It is includes the option to personalize with your choice extra charms(*additional costs apply). </Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>option-addition-option</Name>
+
+                            <Value></Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>optionimage1-1</Name>
+
+                            <Value>NULL</Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>optionimage1-2</Name>
+
+                            <Value>NULL</Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>tab-1-title</Name>
+
+                            <Value>Product Details</Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>pd-rating</Name>
+
+                            <Value></Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>optionimage1-3</Name>
+
+                            <Value>NULL</Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>optionimage1-4</Name>
+
+                            <Value>NULL</Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>dynamic-end-date-saleprice</Name>
+
+                            <Value></Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>free-shipping</Name>
+
+                            <Value>No</Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>option-addition-turn-on</Name>
+
+                            <Value>No</Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>keywords</Name>
+
+                            <Value></Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>tab-3-title</Name>
+
+                            <Value>Shipping info</Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>canonical</Name>
+
+                            <Value></Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>optionimage1-4text</Name>
+
+                            <Value></Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>optionimage1-3text</Name>
+
+                            <Value></Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>optionimage1-2text</Name>
+
+                            <Value></Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>optionimage1-1text</Name>
+
+                            <Value></Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>custom-option-count-color</Name>
+
+                            <Value></Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>dynamic-start-date-saleprice</Name>
+
+                            <Value></Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>custom-option-count-options-10</Name>
+
+                            <Value></Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>video-embed-code</Name>
+
+                            <Value></Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>upsell-item-price</Name>
+
+                            <Value>0.00</Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>custom-option-additional-options</Name>
+
+                            <Value>"Gift Options" "please select" "Yes, Gift Box(+9.00)" "No,Thank You"&#13;
+&#13;
+"Confirmation of Order Details" "displaytexttop" "textoption2" "please select" "Yes,  I Confirm"</Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>pd-reviews-html</Name>
+
+                            <Value></Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>optionimage2-1</Name>
+
+                            <Value>NULL</Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>optionimage2-2</Name>
+
+                            <Value>NULL</Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>optionimage2-3</Name>
+
+                            <Value>NULL</Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>special-item</Name>
+
+                            <Value>No</Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>optionimage2-4</Name>
+
+                            <Value>NULL</Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>option-addition-location-num</Name>
+
+                            <Value>0.00</Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>upsell-item-icon</Name>
+
+                            <Value>NULL</Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>tab-3-text</Name>
+
+                            <Value>&lt;div style="color: rgb(51, 51, 51); font-family: Lato, sans-serif; font-size: 13.3333339691162px;"&gt;&#13;
+   Each one of our personalized jewelry product is hand made to order with your name, initial, engraving or birthstone. &amp;nbsp;This process usually takes between 2-3 weeks of production and quality control time before it ships. &amp;nbsp;(Please allow extra time during holidays and special events).&amp;nbsp;&lt;/div&gt;&#13;
+  &lt;div style="color: rgb(51, 51, 51); font-family: Lato, sans-serif; font-size: 13.3333339691162px;"&gt;&#13;
+   &amp;nbsp;&lt;/div&gt;&#13;
+  &lt;div style="color: rgb(51, 51, 51); font-family: Lato, sans-serif; font-size: 13.3333339691162px;"&gt;&#13;
+   &lt;span style="font-size: 13.3333339691162px;"&gt;USPS Delivery schedule (Domestic):&lt;/span&gt;&lt;/div&gt;&#13;
+  &lt;div style="color: rgb(51, 51, 51); font-family: Lato, sans-serif; font-size: 13.3333339691162px;"&gt;&#13;
+   &amp;nbsp;&lt;/div&gt;&#13;
+  &lt;div style="color: rgb(51, 51, 51); font-family: Lato, sans-serif; font-size: 13.3333339691162px;"&gt;&#13;
+   First class Mail - 1-5 days delivery from the ship date. &amp;nbsp;&amp;nbsp;&lt;/div&gt;&#13;
+  &lt;div style="color: rgb(51, 51, 51); font-family: Lato, sans-serif; font-size: 13.3333339691162px;"&gt;&#13;
+   Priority Mail &amp;nbsp; &amp;nbsp; - 2-3 days delivery from the ship date.&lt;/div&gt;&#13;
+  &lt;div style="color: rgb(51, 51, 51); font-family: Lato, sans-serif; font-size: 13.3333339691162px;"&gt;&#13;
+   Express Mail &amp;nbsp; &amp;nbsp;- 1 day delivery from the ship date.&amp;nbsp;&lt;/div&gt;&#13;
+  &lt;div style="color: rgb(51, 51, 51); font-family: Lato, sans-serif; font-size: 13.3333339691162px;"&gt;&#13;
+   &amp;nbsp;&lt;/div&gt;&#13;
+  &lt;div style="color: rgb(51, 51, 51); font-family: Lato, sans-serif; font-size: 13.3333339691162px;"&gt;&#13;
+   &lt;span style="color:#ff0000;"&gt;Please Note&lt;/span&gt;: &lt;span style="color:#ff0000;"&gt;SHIPPING UPGRADES DO NOT AFFECT PRODUCTION TIMES&lt;/span&gt;&lt;/div&gt;</Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>turn-on-coord-control</Name>
+
+                            <Value>No</Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>metal-type</Name>
+
+                            <Value></Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>header-nav-column1</Name>
+
+                            <Value></Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>custom-option-count-name-color</Name>
+
+                            <Value></Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>header-nav-column2</Name>
+
+                            <Value></Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>tab-2-text</Name>
+
+                            <Value>&lt;p&gt;Metal type: &amp;nbsp;Brass&#13;
+&lt;/p&gt;&lt;p&gt;Stone type:  Swarovski Birthstone&#13;
+&lt;/p&gt;&lt;p&gt; Wish Bone: 16mm x 9mm</Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>header-nav-column3</Name>
+
+                            <Value></Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>top-nav-feature-item-id</Name>
+
+                            <Value></Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>custom-options</Name>
+
+                            <Value>Yes</Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>tab-2-title</Name>
+
+                            <Value>Specifications</Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>custom-option-count</Name>
+
+                            <Value>6.00</Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>is-ring</Name>
+
+                            <Value>No</Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>header-nav-container-min-height</Name>
+
+                            <Value>0.00</Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>custom-option-count-options-1</Name>
+
+                            <Value>"Charm 1" "please select Initial" "Initial A"&#13;
+"Initial B"&#13;
+"Initial C"&#13;
+"Initial D"&#13;
+"Initial E"&#13;
+"Initial F"&#13;
+"Initial G"&#13;
+"Initial H"&#13;
+"Initial I"&#13;
+"Initial J"&#13;
+"Initial K"&#13;
+"Initial L"&#13;
+"Initial M"&#13;
+"Initial N"&#13;
+"Initial O"&#13;
+"Initial P"&#13;
+"Initial Q"&#13;
+</Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>custom-option-count-options-2</Name>
+
+                            <Value>"Charm 2"  "please select" "I love You Mom" "Be" "Made in USA" "Anchor" "Cut out Footprints" "Made with Love" "Wish Bone" "Bicycle" "Heart" "Wing" "Swarovski Birthstone January" "Swarovski Birthstone February" "Swarovski Birthstone March" "Swarovski Birth</Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>custom-option-count-options-3</Name>
+
+                            <Value>"Charm 3"  "please select" "I love You Mom" "Be" "Made in USA" "Anchor" "Cut out Footprints" "Made with Love" "Wish Bone" "Bicycle" "Heart" "Wing" "Swarovski Birthstone January" "Swarovski Birthstone February" "Swarovski Birthstone March" "Swarovski Birth</Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>inset-2</Name>
+
+                            <Value>:KRUZDQ68T30Y.</Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>custom-option-count-options-4</Name>
+
+                            <Value>"Charm 4"  "please select" "I love You Mom" "Be" "Made in USA" "Anchor" "Cut out Footprints" "Made with Love" "Wish Bone" "Bicycle" "Heart" "Wing" "Swarovski Birthstone January" "Swarovski Birthstone February" "Swarovski Birthstone March" "Swarovski Birth</Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>inset-3</Name>
+
+                            <Value>NULL</Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>option-addition-trigger-option-value</Name>
+
+                            <Value></Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>custom-option-count-options-5</Name>
+
+                            <Value>"Charm 5"  "please select" "I love You Mom" "Be" "Made in USA" "Anchor" "Cut out Footprints" "Made with Love" "Wish Bone" "Bicycle" "Heart" "Wing" "Swarovski Birthstone January" "Swarovski Birthstone February" "Swarovski Birthstone March" "Swarovski Birth</Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>inset-4</Name>
+
+                            <Value>NULL</Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>custom-option-count-options-6</Name>
+
+                            <Value>"Charm 6"  "please select" "I love You Mom" "Be" "Made in USA" "Anchor" "Cut out Footprints" "Made with Love" "Wish Bone" "Bicycle" "Heart" "Wing" "Swarovski Birthstone January" "Swarovski Birthstone February" "Swarovski Birthstone March" "Swarovski Birth</Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>custom-option-count-options-7</Name>
+
+                            <Value></Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>custom-option-count-options-8</Name>
+
+                            <Value></Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>custom-option-count-options-9</Name>
+
+                            <Value></Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>navigation-name</Name>
+
+                            <Value></Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>dynamic-end-saleprice-text</Name>
+
+                            <Value></Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>promo-var-1</Name>
+
+                            <Value></Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>promo-var-2</Name>
+
+                            <Value></Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>custom-option-count-name</Name>
+
+                            <Value>Personalize </Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>promo-var-3</Name>
+
+                            <Value></Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>promo-var-4</Name>
+
+                            <Value></Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>promo-var-5</Name>
+
+                            <Value></Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>optionimage2-4text</Name>
+
+                            <Value></Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>optionimage2-3text</Name>
+
+                            <Value></Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>optionimage2-2text</Name>
+
+                            <Value></Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>optionimage2-1text</Name>
+
+                            <Value></Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>custom-option-count-options</Name>
+
+                            <Value>"Enter # of Personalized Charms" "please select" 1 2(+$5.00) 3(+$10.00) 4(+$15.00) 5(+$19.00) 6(+$24.00)</Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>dynamic-sale-price</Name>
+
+                            <Value>0.00</Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>image</Name>
+
+                            <Value>:|20P7K1M0ZSSP.|</Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>page-title</Name>
+
+                            <Value>Inspirational Pendant Necklace Personalized with Charm - Monogram Online</Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>upsell-item-display-text</Name>
+
+                            <Value></Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>path</Name>
+
+                            <Value></Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>turn-on-mixed-case-option</Name>
+
+                            <Value>No</Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>pd-rating-count</Name>
+
+                            <Value></Value>
+                        </CustomData>
+
+                        <CustomData>
+
+                            <Name>dynamic-isdeal-item</Name>
+
+                            <Value>No</Value>
+                        </CustomData>
+                    </Item>
+
+              </ItemList>
+
+        </Catalog>
+
+  </ResponseResourceList>
+</ystorews:ystorewsResponse>
+<!-- api105.store.bf1.yahoo.net uncompressed/chunked Thu Mar 17 01:13:36 PDT 2016 -->
