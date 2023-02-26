@@ -71,6 +71,7 @@ class ShippingController extends Controller
 
         if ($request->has('unique_order_id')) {
             $ships = Ship::with('items.batch', 'user')
+                ->searchStoreId($request->get('store_id'))
                 ->where('is_deleted', 0)
                 ->where('unique_order_id', $request->get('unique_order_id'))
                 ->groupBy('tracking_number')
@@ -89,7 +90,7 @@ class ShippingController extends Controller
                 ->paginate(10);
         }
 
-        $stores = Store::list();
+        $stores = Store::list('%', '%', 'none');
 
         $yesterday = $last30 = date("Y-m-d H:i:s", strtotime('-1 days'));
 

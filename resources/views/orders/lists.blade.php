@@ -190,7 +190,7 @@
 								${!! sprintf("%01.2f", $order->total) !!}
 							</strong>
 						</td>
-						<td>{!! $statuses[$order->order_status] !!}</td>
+						<td>{!! $statuses[$order->order_status] !!} <br> {{ $order->carrier }} {{ $order->method }}</td>
 						<td>{{ $order->promotion_id }} {{ $order->coupon_id }}</td>
 					</tr>
 				@endforeach

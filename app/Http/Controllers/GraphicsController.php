@@ -463,6 +463,9 @@ class GraphicsController extends Controller
 
             $summary = Batch::join('stations', 'batches.station_id', '=', 'stations.id')
                 ->whereIn('batches.status', [2, 4])
+                ->whereHas('store', function($q){
+                    $q->where('permit_users', 'like', "%".auth()->user()->id ."%");
+                })
                 ->where('stations.type', 'G')
                 ->where('graphic_found', '1')
                 ->where('to_printer', '!=', '0')
@@ -506,6 +509,9 @@ class GraphicsController extends Controller
 
             $to_printer = Batch::with('itemsCount', 'first_item')
                 ->join('stations', 'batches.station_id', '=', 'stations.id')
+                ->whereHas('store', function($q){
+                    $q->where('permit_users', 'like', "%".auth()->user()->id ."%");
+                })
                 ->whereIn('batches.status', [2, 4])
                 ->where('stations.type', 'G')
                 ->where('graphic_found', '1')
@@ -672,6 +678,7 @@ class GraphicsController extends Controller
             ->groupBy('production_station_id')
             ->orderBy('section_id')
             ->get();
+
         $last_scan = Batch::with('section', 'production_station', 'items')
             ->join('stations', 'batches.station_id', '=', 'stations.id')
             ->where('batches.is_deleted', '0')
@@ -688,7 +695,7 @@ class GraphicsController extends Controller
 
         $sections = Section::get()->pluck('section_name', 'id');
 
-        $stores = Store::list('1');
+        $stores = Store::list('%', '%', 'none');
 
 
         return view('graphics.move_qc', compact('last_scan', 'name', 'to_move', 'sections', 'stores', 'store_id', 'label'));
@@ -715,7 +722,7 @@ class GraphicsController extends Controller
 
         $sections = Section::get()->pluck('section_name', 'id');
 
-        $stores = Store::list('1');
+        $stores = Store::list('%', '%', 'none');
 
         return view('graphics.move_production', compact('to_move', 'sections', 'stores', 'store_id'));
     }
@@ -894,6 +901,7 @@ class GraphicsController extends Controller
                 ->join('stations', 'batches.station_id', '=', 'stations.id')
                 ->where('batches.section_id', 6)
                 ->searchStatus('active')
+                ->searchStore($store_id)
                 ->where('stations.type', 'G')
                 ->where('stations.id', 92)
                 ->where('graphic_found', '1')
@@ -918,15 +926,15 @@ class GraphicsController extends Controller
         if (count($batches) > 0) {
             $store_ids = array_unique($batches->pluck('store_id')->toArray());
 
-            $stores = Store::where('is_deleted', '0')
-                ->where('batch', '1')
-                ->whereIn('store_id', $store_ids)
+            $stores = Store::where('permit_users', 'like', "%".auth()->user()->id ."%")
+                ->where('is_deleted', '0')
                 ->where('invisible', '0')
+                ->whereIn('store_id', $store_ids)
                 ->orderBy('sort_order')
                 ->get()
                 ->pluck('store_name', 'store_id');
         } else {
-            $stores = Store::list(1, '%', 'none');
+            $stores = Store::list('%', '%', 'none');
         }
 
         $printers = $this->printers;

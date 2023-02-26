@@ -6,11 +6,13 @@
 	<title>Shipment list</title>
 	<meta name = "viewport" content = "width=device-width, initial-scale=1">
 	<link type = "text/css" rel = "stylesheet" href = "/assets/css/bootstrap.min.css">
+	<link type = "text/css" rel = "stylesheet" href = "/assets/css/bootstrap-multiselect.css">
 	<link type = "text/css" rel = "stylesheet" href="/assets/css/pikaday.min.css">
 	<link rel="stylesheet" href="/assets/css/chosen.min.css">
 	
 	<script type = "text/javascript" src = "https://cdn.jsdelivr.net/npm/jquery@3.2.1/dist/jquery.min.js"></script>
 	<script type = "text/javascript" src = "/assets/js/bootstrap.min.js"></script>
+	<script type = "text/javascript" src = "/assets/js/bootstrap-multiselect.js"></script>
 	<script type = "text/javascript" src = "/assets/js/moment.min.js"></script>
 	<script type = "text/javascript" src = "/assets/js/pikaday.min.js"></script>
 	<script type = "text/javascript" src = "/assets/js/chosen.jquery.min.js"></script>
@@ -63,7 +65,7 @@
 			<div class = "form-group col-xs-2">
 				<label for = "status">Store</label>
 				<br>
-				{!! Form::select('store_id', $stores, $request->get('store_id'), ['id'=>'store_id', 'class' => 'form-control']) !!}
+				{!! Form::select('store_id[]', $stores, $request->get('store_id'), ['id'=>'store_id', 'class' => 'form-control', 'multiple' => 'multiple']) !!}
 			</div>
 				{!! Form::hidden('shipped', $request->get('shipped','0'), ['id'=>'shipped']) !!}
 			<div class = "form-group col-xs-2">
@@ -238,6 +240,12 @@
 		@include('/rejections/rejection_modal')
 		
 	<script type = "text/javascript">
+		$(function() {
+
+			$('#store_id').multiselect({includeSelectAllOption:true,
+				nonSelectedText:'Filter By Store',
+				numberDisplayed: 1,});
+		});
 		var picker = new Pikaday(
 		{
 				field: document.getElementById('start_datepicker'),

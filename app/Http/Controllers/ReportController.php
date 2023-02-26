@@ -451,7 +451,7 @@ class ReportController extends Controller
 		}
 
         $companies = Store::$companies;
-
+//        return $items;
       //  dd($items);
 		return view('reports.section', compact ('items', 'qc', 'backorders', 'rejects', 'WAP', 'unbatched', 'shipped_today', 'rejected_today',
 																							'date', 'section', 'graphic_statuses', 'now', 'CS', 'order_statuses', 'CS_rejects', 'total',

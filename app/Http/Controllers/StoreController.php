@@ -966,7 +966,7 @@ class StoreController extends Controller
         if(!in_array(auth()->user()->id, $store->permit_users)){
             abort(403);
         }
-        $users = User::all();
+        $users = User::where('is_deleted', 0)->get();
 
         return view('stores.permission', compact('users', 'store'));
     }

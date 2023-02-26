@@ -5,9 +5,11 @@
 	<title>Move to Production</title>
 	<meta name = "viewport" content = "width=device-width, initial-scale=1">
 	<link type = "text/css" rel = "stylesheet" href = "/assets/css/bootstrap.min.css">
+	<link type = "text/css" rel = "stylesheet" href = "/assets/css/bootstrap-multiselect.css">
 	
 	<script type = "text/javascript" src = "/assets/js/jquery.min.js"></script>
 	<script type = "text/javascript" src = "/assets/js/bootstrap.min.js"></script>
+	<script type = "text/javascript" src = "/assets/js/bootstrap-multiselect.js"></script>
 	
 </head>
 <body>
@@ -39,7 +41,7 @@
 						 
 						{!! Form::open(['name' => 'store_form','url' => '/move_to_qc', 'method' => 'get', 'id' => 'store_form']) !!}
 							 <div class = "form-group col-xs-3">
-								 {!! Form::select('store_id', $stores, $store_id, ['id'=>'store_id', 'class' => 'form-control']) !!}
+								 {!! Form::select('store_id[]', $stores, $store_id, ['id'=>'store_id', 'class' => 'form-control', 'multiple' => 'multiple']) !!}
 							 </div>
 							 <div class = "form-group col-xs-2">
 								 {!! Form::submit('Filter by Store', ['id' => 'store_button', 'class' => 'btn btn-primary btn-sm form-control']) !!}
@@ -85,7 +87,11 @@
 
 			  $(function() {
 			      // Focus on load
-			       $('#barcode').focus();
+			   		$('#barcode').focus();
+
+				 	$('#store_id').multiselect({includeSelectAllOption:true,
+					  nonSelectedText:'Filter By Store',
+					  numberDisplayed: 1,});
 			  });
 				
 			</script>

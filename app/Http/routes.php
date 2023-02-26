@@ -1,18 +1,5 @@
 <?php
 
-use App\Batch;
-use App\Inventory;
-use App\Order;
-use App\Product;
-use App\Section;
-use App\Store;
-use App\StoreItem;
-use Carbon\Carbon;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Log;
-use Monogram\CSV;
-
 header('Access-Control-Allow-Origin:  *');
 //header('Access-Control-Allow-Methods:  POST, GET, OPTIONS, PUT, DELETE');
 //header('Access-Control-Allow-Headers:  Content-Type, X-Auth-Token, Origin, Authorization');
