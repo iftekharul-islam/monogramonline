@@ -28,7 +28,7 @@ class BatchController extends Controller
                 ->searchStation($request->get('station'))
                 ->searchStationType($request->get('type'))
                 ->searchSection($request->get('section'))
-                ->searchStore($request->get('store_id'))
+                ->searchStore($request->get('store'))
                 ->searchProductionStation($request->get('production_station'))
                 ->searchGraphicDir($request->get('graphic_dir'))
                 ->searchPrinted($request->get('printed'), $request->get('print_date'), $request->get('printed_by'))
@@ -82,7 +82,7 @@ class BatchController extends Controller
 
         $statuses = Batch::getStatusList();
 
-        $stores = Store::list('1');
+        $stores = Store::list('%', '%', 'none');
 
 
 

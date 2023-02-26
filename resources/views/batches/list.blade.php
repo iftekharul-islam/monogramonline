@@ -5,11 +5,13 @@
 	<title>Batch list</title>
 	<meta name = "viewport" content = "width=device-width, initial-scale=1">
 	<link type = "text/css" rel = "stylesheet" href = "/assets/css/bootstrap.min.css">
+	<link type = "text/css" rel = "stylesheet" href = "/assets/css/bootstrap-multiselect.css">
 	<link type = "text/css" rel = "stylesheet" href = "/assets/css/pikaday.min.css">
 	<link type = "text/css" rel = "stylesheet" href = "/assets/css/chosen.min.css">
 	
 	<script type = "text/javascript" src = "/assets/js/jquery.min.js"></script>
 	<script type = "text/javascript" src = "/assets/js/bootstrap.min.js"></script>
+	<script type = "text/javascript" src = "/assets/js/bootstrap-multiselect.js"></script>
 	<script type = "text/javascript" src = "/assets/js/moment.min.js"></script>
 	<script type = "text/javascript" src = "/assets/js/pikaday.min.js"></script>
 	<script type = "text/javascript" src = "/assets/js/chosen.jquery.min.js"></script>	
@@ -64,9 +66,11 @@
 					{!! Form::select('status', $statuses, $request->get('status'), ['id'=>'status', 'class' => 'form-control']) !!}
 				</div>
 				<div class = "form-group col-xs-2">
-					<label for = "store">Store</label>
-					{!! Form::select('store_id', $stores, $request->get('store_id'), ['id'=>'store_id', 'class' => 'form-control']) !!}
-				</div>			
+					<label class="col-xs-12" for="store">Store</label>
+					{!! Form::select('store[]', $stores, $request->get('store'), ['id'=>'store', 'class' => 'form-control', 'multiple' => 'multiple']) !!}
+				</div>
+			</div>
+			<div class="row">
 				<div class = "form-group col-xs-2">
 					<label for = "order_start_date">Order Start date</label>
 					<div class = 'input-group date' id = 'order_start_date_picker'>
@@ -81,8 +85,6 @@
 						<span class = "input-group-addon"><span class = "glyphicon glyphicon-calendar"></span></span>
 					</div>
 				</div>
-			</div>
-			<div class="row">
 				<div class = "form-group col-xs-2">
 					<label for = "" class = ""></label>
 					{!! Form::submit('Search', ['id'=>'search', 'style' => 'margin-top: 5px;', 'class' => 'btn btn-primary btn-sm form-control']) !!}
@@ -210,10 +212,13 @@
 	</div>
 
 	<script type = "text/javascript">
-		
 		$(function() {
 				// Focus on load
-				 $('#batch').focus();
+			 	$('#batch').focus();
+
+				$('#store').multiselect({includeSelectAllOption:true,
+				nonSelectedText:'Filter By Store',
+				numberDisplayed: 1,});
 		});
 		
 		var picker = new Pikaday(

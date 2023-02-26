@@ -567,21 +567,26 @@ class Batch extends Taskable
       
       return $query->where('station_id', $station_id);
     }
-    
+
     public function scopeSearchStore ($query, $store_id)
     {
-      if ( !$store_id ) {
-          $store_id = Store::with('store_items')
-              ->where('is_deleted', '0')
-              ->orderBy('sort_order')
-              ->where('permit_users', 'like', "%".auth()->user()->id ."%")
-              ->pluck('store_id');
-      }
-      if (is_array($store_id)){
-        return $query->whereIn('batches.store_id', $store_id);
-      } else {
-        return $query->where('batches.store_id', $store_id);
-      }
+        $stores = Store::query();
+        if ( count($store_id) ) {
+            $stores->whereIn('store_id', $store_id);
+        }
+        $store_ids = $stores->where('permit_users', 'like', "%".auth()->user()->id ."%")
+            ->where('is_deleted', '0')
+            ->where('invisible', '0')
+            ->get()
+            ->pluck('store_id')
+            ->toArray();
+
+        if (is_array($store_ids)){
+            return $query->whereIn('batches.store_id', $store_ids);
+        } else {
+            logger('$store_id');
+            return $query->where('batches.store_id', $store_ids);
+        }
     }
 
     public function scopeSearchMinChangeDate ($query, $start_date)

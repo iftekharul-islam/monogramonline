@@ -223,11 +223,8 @@ class Order extends Taskable
 	public function scopeStoreId ($query, $store_id)
 	{
 		if ( $store_id == 'all' || null === $store_id || $store_id == '' || $store_id == [] ) {
-            $store_id = Store::with('store_items')
-                ->where('is_deleted', '0')
-                ->orderBy('sort_order')
-                ->where('permit_users', 'like', "%".auth()->user()->id ."%")
-                ->pluck('store_id');
+            $store_id = Store::where('permit_users', 'like', "%".auth()->user()->id ."%")
+                ->get()->pluck('store_id')->toArray();
 		}
 		if (is_array($store_id)) {
 			return $query->whereIn('orders.store_id', $store_id);

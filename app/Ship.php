@@ -150,13 +150,27 @@ class Ship extends Taskable
 
 	public function scopeSearchStoreId ($query, $store_id)
 	{
-		if ( empty( $store_id ) ) {
-			return;
-		}
-		
-		return $query->whereHas('order', function($q) use($store_id){
-				$q->where('store_id', "LIKE", sprintf("%%%s%%", $store_id));
-		});
+        logger($store_id);
+        $stores = Store::query();
+        if ( count($store_id) ) {
+            $stores->whereIn('store_id', $store_id);
+        }
+        $store_id = $stores->where('permit_users', 'like', "%".auth()->user()->id ."%")
+            ->where('is_deleted', '0')
+            ->where('invisible', '0')
+            ->get()
+            ->pluck('store_id')
+            ->toArray();
+
+        if (count($store_id)){
+            return $query->whereHas('order', function($q) use($store_id){
+                $q->whereIn('store_id', $store_id);
+            });
+        } else {
+            return $query->whereHas('order', function($q) use($store_id){
+                $q->whereIn('store_id', "LIKE", sprintf("%%%s%%", $store_id));
+            });
+        }
 	}
 	
 	public function scopeSearchPackageShape ($query, $package_shape)

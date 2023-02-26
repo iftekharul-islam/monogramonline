@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Store;
 use Illuminate\Http\Request;
 
 use App\Http\Requests;
@@ -28,6 +29,12 @@ class RejectionController extends Controller
     public function index (Request $request)
     {   
         $batch_array = array();
+        $store_ids = Store::where('permit_users', 'like', "%".auth()->user()->id ."%")
+            ->where('is_deleted', '0')
+            ->where('invisible', '0')
+            ->get()
+            ->pluck('store_id')
+            ->toArray();
         
         if ($request->all() == []) {
           
@@ -35,6 +42,7 @@ class RejectionController extends Controller
                     ->where ( 'items.is_deleted', '0' )
           					->searchStatus ( 'rejected' )
                     ->where('graphic_status', '!=', 4)
+                    ->whereIn('store_id', $store_ids)
                     ->where('rejections.complete', '0')
                     ->selectRaw('rejections.graphic_status, rejections.rejection_reason, COUNT(items.id) as count')
                     ->groupBy('rejections.graphic_status')
@@ -54,6 +62,7 @@ class RejectionController extends Controller
           $items = Item::with ( 'rejection.rejection_reason_info', 'rejection.user', 'rejection.from_station', 'rejections', 
                                 'order', 'batch' )
                     ->where ( 'is_deleted', '0' )
+                    ->whereIn('store_id', $store_ids)
           					->searchStatus ( 'rejected' )
                     ->searchBatch(trim($request->get('batch_number')))
                     ->searchGraphicStatus($request->get('graphic_status'))

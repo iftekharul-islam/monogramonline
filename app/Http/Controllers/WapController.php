@@ -24,12 +24,16 @@ class WapController extends Controller
     protected $table = 'wap';
 
     public function index(Request $request)
-    {   
-
+    {
         if (!$request->has('end_date')) {
             $end_date = NULL;
             
             $bins = Wap::with('order.shippable_items', 'order.store', 'order.items')
+                    ->whereHas('order.store', function ($q){
+                        $q->where('permit_users', 'like', "%".auth()->user()->id ."%")
+                            ->where('is_deleted', '0')
+                            ->where('invisible', '0');
+                    })
                     ->whereNotNull('wap.order_id')
                     ->select('wap.*', \DB::raw('(SELECT MAX(created_at) FROM wap_items WHERE wap_items.bin_id = wap.id ) as last,
                                                 (SELECT COUNT(*) FROM wap_items WHERE wap_items.bin_id = wap.id ) as item_count'))
@@ -39,6 +43,9 @@ class WapController extends Controller
             $end_date = $request->get('end_date');
             
             $bin_list = Order::join('wap', 'wap.order_id', '=', 'orders.id')
+                        ->whereHas('store', function($q){
+                            $q->where('permit_users', 'like', "%".auth()->user()->id ."%");
+                        })
                         ->where('orders.order_date', '<', $end_date)
                         ->whereNotNull('wap.order_id')
                         ->selectRaw('wap.id')
@@ -58,7 +65,7 @@ class WapController extends Controller
         
         $statuses = Order::statuses();
         
-        $stores = Store::list();
+        $stores = Store::list('%', '%', 'none');
 
 
         return view('wap.index', compact('bins', 'sorted_bins', 'end_date', 'statuses', 'stores'));
