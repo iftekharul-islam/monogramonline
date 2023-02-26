@@ -49,7 +49,7 @@ get("conversion/image", 'CustomController@conversionImage');
 get("conversion/image2", 'CustomController@conversionImage2');
 get("tool/order_status/hold/{id}", 'CustomController@orderStatusHold');
 get("option_mass", 'CustomController@option_mass');
-get("option_mass", 'CustomController@zakeke_switch_type');
+get("option_mass", 'CustomController@zakeke_switch_type');//invalid
 
 get("zakeke/test1", "ZakekeController@test1");
 get("zakeke/test2", "ZakekeController@test2");
@@ -66,18 +66,18 @@ get("test/mass_delete2", "CustomController@testMassDelete2");
 get("test/mass_delete3", "CustomController@testMassDelete3");
 get("est/mass_set_other_hold", "CustomController@estMassSetOtherHold");
 get("test/mass_delete", "CustomController@testMassDelete");
-get("shipment_cache_all", "CustomController@shipmentCacheAll");
+get("shipment_cache_all", "CustomController@shipmentCacheAll"); //invalid
 get("store_cache", "CustomController@storeCache");
-get("batch_info", "CustomController@batchInfo");
+get("batch_info", "CustomController@batchInfo"); //invalid
 get("order_layout", "CustomController@orderLayout");
-get("shipment_cache", "CustomController@shipmentCache");
+get("shipment_cache", "CustomController@shipmentCache"); //invalid
 get("order_layout2", "CustomController@orderLayout2");
 get("test_store", "CustomController@testStore");
-get("test_export", "CustomController@testExport");
+get("test_export", "CustomController@testExport"); //invalid
 get("test_store_inventory", "CustomController@testStoreInventory");
 get("test_order_1", "CustomController@testOrder1");
 get("order_test33", "CustomController@orderTest33");
-get("test_order_test", "CustomController@testOrderTest");
+get("test_order_test", "CustomController@testOrderTest"); //invalid
 get("store_inventory_child_sku", "CustomController@storeInventoryChildSku");
 
 
@@ -457,6 +457,7 @@ Route::group([ 'middleware' => [ 'auth' ] ], function () {
 
 // guest middleware enabled controller
 Route::group([ 'middleware' => [ 'guest' ] ], function () {
+	// get('login-shanto', 'AuthenticationController@getShanto');
 	get('login', 'AuthenticationController@getLogin');
 	get('login2', 'AuthenticationController@getLogin2');
 	post('login', 'AuthenticationController@postLogin');

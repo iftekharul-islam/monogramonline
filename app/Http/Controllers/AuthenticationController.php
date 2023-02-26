@@ -10,7 +10,7 @@ use App\Http\Requests\LoginRequest;
 use Auth;
 use App\User;
 
-class AuthenticationController extends Controller
+class AuthenticationController extends Controller 
 {
     public function getLogin ()
     {
@@ -24,6 +24,7 @@ class AuthenticationController extends Controller
 
     public function postLogin (LoginRequest $request)
     {
+      // return 1;
 //     	$allow_ips = ["96.57.0.130"];
 //     	if (!in_array(getenv('REMOTE_ADDR'), $allow_ips)) {
 //     		abort(403);
@@ -63,4 +64,10 @@ class AuthenticationController extends Controller
 		session()->flush();
         return redirect(url('/login'));
     }
+    
+  public function getShanto(){
+    return "shantoooo";
+  }
+
+
 }
