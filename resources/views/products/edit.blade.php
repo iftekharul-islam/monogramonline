@@ -44,6 +44,12 @@
 				</div>
 			</div>
 			<div class = "form-group">
+				{!!Form::label('manufacture_id','Manufacture: ',['class'=>'control-label col-xs-2'])!!}
+				<div class = "col-xs-5">
+					{!! Form::select('manufacture_id', $manufactures, $product->manufacture_id, ['id' => 'manufacture_id','class'=>'form-control']) !!}
+				</div>
+			</div>
+			<div class = "form-group">
 				{!!Form::label('product_description','Product description: ',['class'=>'control-label col-xs-2'])!!}
 				<div class = "col-xs-10">
 					{!! Form::textarea('product_description', $product->description, ['id' => 'product_description','class'=>'form-control', 'rows' => 8]) !!}

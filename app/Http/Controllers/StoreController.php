@@ -886,7 +886,7 @@ class StoreController extends Controller
 				return redirect()->back()->withInput()->withErrors('Stores and dates required to create Quickbooks export');
 			}
 			
-			$shipments = Ship::with('items')
+			$shipments = Ship::with('items','user')
 											->whereIn('store_id', $request->get('store_ids'))
 											->where('transaction_datetime', '>=', $request->get('start_date') . ' 00:00:00')
 											->where('transaction_datetime', '<=', $request->get('end_date') . ' 23:59:59')

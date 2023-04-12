@@ -16,6 +16,7 @@ class Product extends Taskable
 		'id_catalog'             => 'ID Catalog',
 		'product_model'          => 'SKU',
 		'product_name'           => 'Name',
+		'manufacture_id'                     => 'Manufacture',
 		// 'product_sales_category' => 'Sales category',
 		// 'product_price'          => 'Price',
 		// 'product_sale_price'     => 'Sale price',
@@ -210,7 +211,9 @@ class Product extends Taskable
 			} elseif ( $search_in == 'product_model' ) {
 				return $this->scopeSearchProductModel($query, $search_for);
 			} elseif ( $search_in == 'product_name' ) {
-				return $this->scopeSearchProductName($query, $search_for);
+                return $this->scopeSearchProductName($query, $search_for);
+            } elseif ( $search_in == 'manufacture_id' ) {
+                return $this->scopeSearchManufactureName($query, $search_for);
 			// } elseif ( $search_in == 'product_sales_category' ) {
 			// 	return $this->scopeSearchProductSalesCategory($query, $search_for);
 			// } elseif ( $search_in == 'product_price' ) {
@@ -445,6 +448,19 @@ class Product extends Taskable
 		return $query->where('product_name', 'LIKE', sprintf("%%%s%%", $product_name));
 	}
 
+    public function scopeSearchManufactureName ($query, $manufacture_name)
+    {
+        if ( !$manufacture_name ) {
+            return;
+        }
+        $manufacture_name = trim($manufacture_name);
+
+        return $query->whereHas('manufacture', function($q) use ($manufacture_name){
+            $q->where('name', 'LIKE', sprintf("%%%s%%", $manufacture_name));
+        });
+
+    }
+
 // 	public function scopeSearchRoute ($query, $route_ids)
 // 	{
 
@@ -563,4 +579,10 @@ class Product extends Taskable
 							null
 						];
 	}
+
+    public function manufacture ()
+    {
+        return $this->hasOne('App\Manufacture', 'id', 'manufacture_id');
+    }
+
 }

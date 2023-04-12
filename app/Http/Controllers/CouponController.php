@@ -21,25 +21,25 @@ class CouponController extends Controller
 
         // http://dev.monogramonline.com/getcouponproducts?code=g2pkc22xfj2m2
 
-        $discountCodeDetails = $helper->shopify_call("/admin/api/2020-04/discount_codes/lookup.json", $array, 'GET');
+        $discountCodeDetails = $helper->shopify_call("/admin/api/2023-01/discount_codes/lookup.json", $array, 'GET');
 
 //$helper->jdbg("getCouponProducts = ", $discountCodeDetails);
         if(!empty($discountCodeDetails["response"])){
             // https://monogramonline.myshopify.com/admin/api/2020-01/price_rules/660298301573.json
-            $priceRuleDetails = $helper->shopify_call("/admin/api/2020-04/price_rules/".
+            $priceRuleDetails = $helper->shopify_call("/admin/api/2023-01/price_rules/".
                 $discountCodeDetails['response']['discount_code']['price_rule_id'].".json", [], 'GET');
 //            dd($discountCodeDetails);
             $entitledCollectionIds = json_decode($priceRuleDetails['response'], true);
 //$helper->jdbg("entitledCollectionIds = ", $entitledCollectionIds);
             #############################
-                if(!isset($entitledCollectionIds["price_rule"]["entitled_collection_ids"][0])){
-                    $pHtml = '<ul class="app-discount">';
-                    $pHtml = $pHtml.'</ul>';
-                    return json_encode($pHtml);
-                }
+            if(!isset($entitledCollectionIds["price_rule"]["entitled_collection_ids"][0])){
+                $pHtml = '<ul class="app-discount">';
+                $pHtml = $pHtml.'</ul>';
+                return json_encode($pHtml);
+            }
             #############################
             // https://monogramonline.myshopify.com/admin/api/2020-01/collections/184960843909/products.json
-            $productsDetails = $helper->shopify_call("/admin/api/2020-04/collections/".$entitledCollectionIds["price_rule"]["entitled_collection_ids"][0]."/products.json", [], 'GET');
+            $productsDetails = $helper->shopify_call("/admin/api/2023-01/collections/".$entitledCollectionIds["price_rule"]["entitled_collection_ids"][0]."/products.json", [], 'GET');
             $productsCollectionIds = json_decode($productsDetails['response'], true);
 
 //            dd($productsCollectionIds['products']);
@@ -48,15 +48,15 @@ class CouponController extends Controller
             $products = [];
             $pHtml = '<ul class="app-discount">';
             foreach ($productsCollectionIds['products'] as $product){
-                    $product_url = "https://monogramonline.com/products/". $product['handle'];
-                    $products[$product['id']]["title"] = $product['title'];
-                    $products[$product['id']]["image_url"] = $product['image']['src'];
-                    $products[$product['id']]["product_url"] = "https://monogramonline.com/products/". $product['handle'];
+                $product_url = "https://monogramonline.com/products/". $product['handle'];
+                $products[$product['id']]["title"] = $product['title'];
+                $products[$product['id']]["image_url"] = $product['image']['src'];
+                $products[$product['id']]["product_url"] = "https://monogramonline.com/products/". $product['handle'];
 
                 $pHtml = $pHtml.'<li>';
-                    $pHtml = $pHtml.'<figure><img src="'.$product['image']['src'].'" class="product-image"></figure>';
-                    $pHtml = $pHtml.'<h2 class="product-title">'.$product['title'].'</h2>';
-                    $pHtml = $pHtml.'<a href="'.$product_url.'" class="add-to-cart">Select Product</a>';
+                $pHtml = $pHtml.'<figure><img src="'.$product['image']['src'].'" class="product-image"></figure>';
+                $pHtml = $pHtml.'<h2 class="product-title">'.$product['title'].'</h2>';
+                $pHtml = $pHtml.'<a href="'.$product_url.'" class="add-to-cart">Select Product</a>';
                 $pHtml = $pHtml.'</li>';
             }
             $pHtml = $pHtml.'</ul>';

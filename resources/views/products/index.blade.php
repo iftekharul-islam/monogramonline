@@ -69,6 +69,7 @@
 							     data-placement = "top"
 							     title = "Edit this product"><i class = 'glyphicon glyphicon-pencil text-success'></i></a>
 							| {!! \App\Task::widget('App\Product', $product->id, null, 12); !!}
+							<p><b>{{ $product->manufacture->name ?? '' }}</b></p>
 						</td>
 					</tr>
 				@endforeach

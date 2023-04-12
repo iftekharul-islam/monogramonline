@@ -81,7 +81,7 @@ class PrintController extends Controller
 										->searchStatus('active')
 										->searchStation($request->get('station'))
 										->searchSection($request->get('section'))
-										->searchStore($request->get('store'))
+										->searchStore([$request->get('store')])
 										->searchType($request->get('type'))
 										->searchProductionStation($request->get('production_station'))
 										->searchPrinted($request->get('printed'))

@@ -103,11 +103,21 @@
 			 		</div>
 				</div>
 				<div class = "form-group col-xs-1">
-					<label>Type:</label>
+					<label>Manufacture:</label>
 				</div>
+
 				<div class = "form-group col-xs-2">
-					{!! Form::select('batch_type', ['' => '', 'B%' => 'Back order', 'R%' => 'Reject', 'X%' => 'Redo'], $batch_type, ['id'=>'batch_type', 'class' => 'form-control']) !!}
+					<select name="manufacture_id" id="" class="form-control">
+						<option value="">Select manufacture</option>
+						@foreach($manufactures as $item)
+							<option value="{{ $item->id }}" {{ Request::get('manufacture_id') == $item->id ? 'selected' : '' }}>{{ $item->name }}</option>
+						@endforeach
+					</select>
+{{--					{!! Form::select('manufacture_id', $manufactures, ['id'=>'batch_type', 'class' => 'form-control']) !!}--}}
 				</div>
+{{--				<div class = "form-group col-xs-2">--}}
+{{--					{!! Form::select('batch_type', ['' => '', 'B%' => 'Back order', 'R%' => 'Reject', 'X%' => 'Redo'], $batch_type, ['id'=>'batch_type', 'class' => 'form-control']) !!}--}}
+{{--				</div>--}}
 
 				<div class = "form-group col-xs-1">
 					<label>Store:</label>

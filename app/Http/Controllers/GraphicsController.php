@@ -463,8 +463,8 @@ class GraphicsController extends Controller
 
             $summary = Batch::join('stations', 'batches.station_id', '=', 'stations.id')
                 ->whereIn('batches.status', [2, 4])
-                ->whereHas('store', function($q){
-                    $q->where('permit_users', 'like', "%".auth()->user()->id ."%");
+                ->whereHas('store', function ($q) {
+                    $q->where('permit_users', 'like', "%" . auth()->user()->id . "%");
                 })
                 ->where('stations.type', 'G')
                 ->where('graphic_found', '1')
@@ -509,8 +509,8 @@ class GraphicsController extends Controller
 
             $to_printer = Batch::with('itemsCount', 'first_item')
                 ->join('stations', 'batches.station_id', '=', 'stations.id')
-                ->whereHas('store', function($q){
-                    $q->where('permit_users', 'like', "%".auth()->user()->id ."%");
+                ->whereHas('store', function ($q) {
+                    $q->where('permit_users', 'like', "%" . auth()->user()->id . "%");
                 })
                 ->whereIn('batches.status', [2, 4])
                 ->where('stations.type', 'G')
@@ -756,8 +756,8 @@ class GraphicsController extends Controller
             ->where('batch_number', $result['batch_number'])
             ->first();
 
-         return $this->showBatchQc($request);
-     //   return view('graphics.show_batch', compact('to_move'));
+        return $this->showBatchQc($request);
+        //   return view('graphics.show_batch', compact('to_move'));
 
     }
 
@@ -818,7 +818,6 @@ class GraphicsController extends Controller
 //        $filename .= "^XZ";
 
 
-
         $to_move = Batch::with('items', 'route', 'station', 'summary_user')
             ->where('batch_number', $result['batch_number'])
             ->first();
@@ -834,7 +833,7 @@ class GraphicsController extends Controller
         $filename .= "^FO55,35^A0,40^FB220,1,0,CH^FD{$format}^FS";
         $filename .= "^FO55,70^A0,30^FB220,1,0,CH^FD[UNIQUE_ID]^FS";
 
-        if(stripos($batch_number, "-") !== false) {
+        if (stripos($batch_number, "-") !== false) {
             $filename .= "^FO25,100^BY2.3^BCN,60,,,,A^FD{$batch_number}^FS";
         } else {
             $filename .= "^FO100,100^BY2.3^BCN,60,,,,A^FD{$batch_number}^FS";
@@ -842,7 +841,7 @@ class GraphicsController extends Controller
 
         $filename .= "^PQ1,0,1,Y^XZ";
 
-        $created =  $to_move->items[0]->created_at ?? \Carbon\Carbon::now();
+        $created = $to_move->items[0]->created_at ?? \Carbon\Carbon::now();
         $date = $created->toDateString();
 
         $filename = str_replace("[UNIQUE_ID]", $date, $filename);
@@ -926,7 +925,7 @@ class GraphicsController extends Controller
         if (count($batches) > 0) {
             $store_ids = array_unique($batches->pluck('store_id')->toArray());
 
-            $stores = Store::where('permit_users', 'like', "%".auth()->user()->id ."%")
+            $stores = Store::where('permit_users', 'like', "%" . auth()->user()->id . "%")
                 ->where('is_deleted', '0')
                 ->where('invisible', '0')
                 ->whereIn('store_id', $store_ids)
@@ -952,8 +951,7 @@ class GraphicsController extends Controller
     public function printSublimation(Request $request)
     {
 
-        if($request->get('pdf') == 1)
-        {
+        if ($request->get('pdf') == 1) {
             return $this->printSubFile(
                 null, $request->get('printer'), $request->get('batch_number'),
                 100, null, 0, $request->get('pdf'), false
@@ -1142,25 +1140,28 @@ class GraphicsController extends Controller
         return;
 
     }
-    public function getDPIImageMagick($filename){
-        $cmd = 'identify -quiet -format "%x" '.$filename;
+
+    public function getDPIImageMagick($filename)
+    {
+        $cmd = 'identify -quiet -format "%x" ' . $filename;
         @exec(escapeshellcmd($cmd), $data);
-        if($data && is_array($data)){
+        if ($data && is_array($data)) {
             $data = explode(' ', $data[0]);
 
-            if($data[1] == 'PixelsPerInch'){
+            if ($data[1] == 'PixelsPerInch') {
                 return $data[0];
-            }elseif($data[1] == 'PixelsPerCentimeter'){
+            } elseif ($data[1] == 'PixelsPerCentimeter') {
                 $x = ceil($data[0] * 2.54);
                 return $x;
-            }elseif($data[1] == 'Undefined'){
+            } elseif ($data[1] == 'Undefined') {
                 return $data[0];
             }
         }
         return 72;
     }
 
-    protected function createJsonPayload($batchNumber) {
+    protected function createJsonPayload($batchNumber)
+    {
         $batchToProcess = Batch::with('items.parameter_option.design')
             ->where('batch_number', $batchNumber)
             ->first();
@@ -1168,9 +1169,9 @@ class GraphicsController extends Controller
 
 
         $childSku = $batchToProcess->items[0]->child_sku;
-        $batchHeader= strtoupper($batchToProcess->items[0]->item_description);
+        $batchHeader = strtoupper($batchToProcess->items[0]->item_description);
         $seedPageSize = substr($childSku, -4);
-        $doubleSided = substr($childSku, 0 ,1) == 'D';
+        $doubleSided = substr($childSku, 0, 1) == 'D';
 
         $pdfParams = [
             'doubleSided' => false,
@@ -1180,17 +1181,17 @@ class GraphicsController extends Controller
             'columnLayout' => 1
         ];
 
-        if(stripos($batchToProcess->items[0]->child_sku, "5060") !== false) {
+        if (stripos($batchToProcess->items[0]->child_sku, "5060") !== false) {
             $pdfParams['pageHeight'] = 1740;
             $pdfParams['columnLayout'] = 1;
         } elseif (stripos($batchToProcess->items[0]->child_sku, "30") !== false) {
             $pdfParams['pageHeight'] = 1215;
             $pdfParams['columnLayout'] = 2;
         } else {
-            if($batchToProcess->items[0]->parameter_option->frame_size === 0) {
+            if ($batchToProcess->items[0]->parameter_option->frame_size === 0) {
                 $pdfParams['pageHeight'] = 1300;
             } else {
-                 $pdfParams['pageHeight'] = ($batchToProcess->items[0]->parameter_option->frame_size + 4) * 25.4 + 500;
+                $pdfParams['pageHeight'] = ($batchToProcess->items[0]->parameter_option->frame_size + 4) * 25.4 + 500;
                 $pdfParams['columnLayout'] = 2;
             }
 
@@ -1205,7 +1206,7 @@ class GraphicsController extends Controller
                 $options = json_decode($item->item_option, true);
                 $itemImages = [];
 
-                if(file_exists("/var/www/order.monogramonline.com/assets/images/template_thumbs/" . $item->order_id . "-" . $item->id . '.jpg')) {
+                if (file_exists("/var/www/order.monogramonline.com/assets/images/template_thumbs/" . $item->order_id . "-" . $item->id . '.jpg')) {
                     $itemImages[] = 'http://order.monogramonline.com/assets/images/template_thumbs/' . $item->order_id . "-" . $item->id . '.jpg';
                     $dpi = $this->getDPIImageMagick("/var/www/order.monogramonline.com/assets/images/template_thumbs/" . $item->order_id . "-" . $item->id . '.jpg');
                 } else {
@@ -1240,7 +1241,7 @@ class GraphicsController extends Controller
                         }
                     }
 
-                    if(isset($file_names)) {
+                    if (isset($file_names)) {
                         foreach ($file_names as $thumb) {
                             $itemImages[] = "http://order.monogramonline.com/assets/images/graphics/" . substr($thumb, 0, strpos($thumb, '.')) . '.jpg';
                             $dpi = $this->getDPIImageMagick($thumb_path . substr($thumb, 0, strpos($thumb, '.')) . '.jpg');
@@ -1262,7 +1263,7 @@ class GraphicsController extends Controller
                 $ordersToProcess[] = [
                     'id' => $item->order_id,
                     'po' => $item->order_5p,
-                    'creationDate' => (string) $item->created_at,
+                    'creationDate' => (string)$item->created_at,
                     'items' => [$itemsToProcess]
                 ];
             }
@@ -1299,16 +1300,15 @@ class GraphicsController extends Controller
             $createResponse = $api->postPayload('/api/printing_batches', $token, $jsonPayLoad);
 
 
-
-            if($createResponse->getStatusCode() == 201) {
-                $createResponseData = json_decode($createResponse->getBody()->getContents(),true);
+            if ($createResponse->getStatusCode() == 201) {
+                $createResponseData = json_decode($createResponse->getBody()->getContents(), true);
                 $fileResponse = $api->getPayload(
                     $createResponseData['pdfFile'],
                     $token
                 );
 
-                if($fileResponse->getStatusCode() == 200) {
-                    $fileResponseData = json_decode($fileResponse->getBody()->getContents(),true);
+                if ($fileResponse->getStatusCode() == 200) {
+                    $fileResponseData = json_decode($fileResponse->getBody()->getContents(), true);
                     $printerNumber = explode("-", $printer)[1];
 
                     $stagingBaseDir = '/var/www/order.monogramonline.com/storage';
@@ -1332,7 +1332,7 @@ class GraphicsController extends Controller
                     $result = ["file" => $response, "filename" => $filename];
 
 
-                    $pdfFilePath = $stagingBaseDir . DIRECTORY_SEPARATOR . 'wasatch/staging-'. $printerNumber;
+                    $pdfFilePath = $stagingBaseDir . DIRECTORY_SEPARATOR . 'wasatch/staging-' . $printerNumber;
 
                     $fp = fopen($pdfFilePath . DIRECTORY_SEPARATOR . $batch_number . ".pdf", 'w');
                     fwrite($fp, $result['file']);
@@ -1442,13 +1442,14 @@ class GraphicsController extends Controller
 //        if($parameterOptions->frame_size) {
             $frameSize = $parameterOptions->frame_size;
 
-//        if($frameSize === 65) {
-//            $frameSize = 0;
-//        }
-            // I removed this to test
-
+//            if (isEmpty($frameSize)) {
+//                $frameSize = 0;
+//                Log::error('printSubFile: Batch Summary Creation Error - ' . $batch_number);
+//                return 'Parameter Options ';
+//            }
 
             $mirror = $parameterOptions->mirror;
+            $orientation = $parameterOptions->orientation;
 //        }
 //        dd($file, $printer, $batch_number, $parameterOptions, $frameSize, $mirror );
             ###################################
@@ -1462,6 +1463,7 @@ class GraphicsController extends Controller
 //dd($info);
                 $info['frameSize'] = $frameSize;
                 $info['mirror'] = $mirror;
+                $info['orientation'] = $orientation;
 
                 if (is_array($info)) {
                     if (strpos($path, "RDrive")) {
@@ -1497,10 +1499,37 @@ class GraphicsController extends Controller
                 return 'Batch Summary Imagesize Error';
             }
 
-//dd($list, $batch_number, substr($printer,-1), substr($printer,0,4));
+//            ##############################
+////            dd($list, $batch_number, substr($printer, -1), substr($printer, 0, 4), null, $batch->items[0]->item_quantity);
+//            $list = [
+//                "/archive/668141-pen-sub_DOG/668141-0.jpg" => [
+//                    "file" => "/media/RDrive/archive/668141-pen-sub_DOG/668141-0.jpg",
+//                    "type" => ".jpg",
+//                    "width" => "41.667",
+//                    "height" => "27.778",
+//                    "scale" => 100,
+//                    "frameSize" => 62,
+//                    "mirror" => 1,
+//                    "orientation" => 0,
+//                    "source" => "R"
+//                ],
+//                "/summaries/668141.pdf" => [
+//                    "file" => "/media/RDrive/summaries/668141.pdf",
+//                    "type" => ".pdf",
+//                    "width" => "7.444",
+//                    "height" => "0.917",
+//                    "scale" => 100,
+//                    "source" => "R",
+//                    "frameSize" => 62,
+//                ]
+//            ];
+//            $batch_number = 667755;
+//            ##############################
             $w = new Wasatch;
+//            $w->printJob($list, 667755, 1, 'SOFT', null, 1);
+            $list = array_reverse($list);
             $w->printJob($list, $batch_number, substr($printer, -1), substr($printer, 0, 4), null, $batch->items[0]->item_quantity);
-//      dd($list, $batch_number, substr($printer,-1), substr($printer,0,4));
+//            dd($list, $batch_number, substr($printer, -1), substr($printer, 0, 4));
             Batch::note($batch->batch_number, '', '6', 'Sent to ' . $printer);
 
             if ($batch) {
@@ -1595,14 +1624,12 @@ class GraphicsController extends Controller
     {
 
 
-
-        if($batch instanceof Batch && $normal) {
+        if ($batch instanceof Batch && $normal) {
 //            $ns = Batch::getNextStation('object', $batch->batch_route_id, $batch->station_id);
 
 //            if (is_object($ns)) {
 //                if (stripos($ns->station_name, "S-GGR-INDIA") !== false) return ['error' => null, 'success' => sprintf('Warning: Batch %s cannot be moved', $batch->batch_number), 'batch_number' => $batch->batch_number];
 //            }
-
 
 
             if ($batch->station) {
@@ -1614,14 +1641,14 @@ class GraphicsController extends Controller
             $batch = Batch::with("route")->where("batch_number", $batch->batch_number)->first();
             $stations = BatchRoute::routeThroughStations($batch->batch_route_id, $station_name);
 
-            if(stripos($stations, "S-GGR-INDIA") !== false) {
-             if(!$canLook) {
-                 $batch->prev_station_id = null;
-                 $batch->station_id = 264;
-             } else {
-                 $batch->prev_station_id = null;
-                 $batch->station_id = 92;
-             }
+            if (stripos($stations, "S-GGR-INDIA") !== false) {
+                if (!$canLook) {
+                    $batch->prev_station_id = null;
+                    $batch->station_id = 264;
+                } else {
+                    $batch->prev_station_id = null;
+                    $batch->station_id = 92;
+                }
             } else {
                 $batch->prev_station_id = null;
                 $batch->station_id = 92;
@@ -1993,10 +2020,10 @@ class GraphicsController extends Controller
 //          echo "<pre>";
 //              print_r($dir_list);
 //          echo "</pre>";
-        //    Log::info('STARTING SORTFILES ' . $id);
+            //    Log::info('STARTING SORTFILES ' . $id);
         } else {
-          //  Log::info("Nothing to sort from " . $this->main_dir);
-         //   echo "Nothing to sort from " . $this->main_dir;
+            //  Log::info("Nothing to sort from " . $this->main_dir);
+            //   echo "Nothing to sort from " . $this->main_dir;
         }
 
 
@@ -2245,7 +2272,6 @@ class GraphicsController extends Controller
 
     public function reprintBulk(Request $request)
     {
-
         set_time_limit(0);
 
         $batch_numbers = $request->get('batch_number');
@@ -2280,58 +2306,56 @@ class GraphicsController extends Controller
 
     public function getArchiveGraphic($name)
     {
-
-
         $list = glob(self::$archive . $name . "*");
         $files = array();
 
-            if (count($list) < 1) {
-                /*
-                 * Note, can be solved by uploading the graphic again
-                 */
+        if (count($list) < 1) {
+            /*
+             * Note, can be solved by uploading the graphic again
+             */
 
 
-                $batch = Batch::with('items.order.store', 'items.rejections.user', 'items.rejections.rejection_reason_info',
-                    'items.spec_sheet', 'items.product', 'station', 'route', 'section', 'store', 'summary_user')
-                    ->where('is_deleted', 0)
-                    ->where('batch_number', $name)
-                    ->get()[0];
-                foreach ($batch->items as $item) {
-                    $item_name = $item->order_id . "-" . $item->id . '.jpg';
+            $batch = Batch::with('items.order.store', 'items.rejections.user', 'items.rejections.rejection_reason_info',
+                'items.spec_sheet', 'items.product', 'station', 'route', 'section', 'store', 'summary_user')
+                ->where('is_deleted', 0)
+                ->where('batch_number', $name)
+                ->get()[0];
+            foreach ($batch->items as $item) {
+                $item_name = $item->order_id . "-" . $item->id . '.jpg';
                 //    $path = "/var/www/order.monogramonline.com" . '/public_html/assets/images/template_thumbs/' . $item->order_id . "-" . $item->id . '.jpg';
-                    $path = "/var/www/order.monogramonline.com" . '/public_html/assets/images/product_thumb/' . $item->item_sku . '.jpg';
+                $path = "/var/www/order.monogramonline.com" . '/public_html/assets/images/product_thumb/' . $item->item_sku . '.jpg';
 
-                    if (file_exists($path)) {
-                        if (copy($path, self::$archive . $name)) {
-                            // Smoothly);
-                            $list2 = glob(self::$archive . $name . "*");
-                            if (count($list2) >= 1) {
-                                foreach ($list2 as $file) {
-                                    $files[filemtime($file)] = $file;
-                                }
-
-                                ksort($files);
-
-                                return array_pop($files);
-                            } else {
-                                $msg = "reprintGraphic: Error file was not found.... after checking twice";
-                                Log::error($msg);
-                                return "Not found after trying to fix archive lost.";
+                if (file_exists($path)) {
+                    if (copy($path, self::$archive . $name)) {
+                        // Smoothly);
+                        $list2 = glob(self::$archive . $name . "*");
+                        if (count($list2) >= 1) {
+                            foreach ($list2 as $file) {
+                                $files[filemtime($file)] = $file;
                             }
+
+                            ksort($files);
+
+                            return array_pop($files);
+                        } else {
+                            $msg = "reprintGraphic: Error file was not found.... after checking twice";
+                            Log::error($msg);
+                            return "Not found after trying to fix archive lost.";
                         }
-                    } else {
-                        $msg = "reprintGraphic: No thumb exist for " . $item->order_id . "-" . $item->id;
-                        Log::error($msg);
-                        return $msg;
                     }
+                } else {
+                    $msg = "reprintGraphic: No thumb exist for " . $item->order_id . "-" . $item->id;
+                    Log::error($msg);
+                    return $msg;
                 }
+            }
 
 //          Log::error('reprintGraphic: File not found in Archive ' . $name);
 //          return 'ERROR not found in Archive!';
 
-                Log::error('reprintGraphic: File not found in Archive/could not save ' . $name);
-                return 'ERROR not found in Archive/could not get at all!';
-            }
+            Log::error('reprintGraphic: File not found in Archive/could not save ' . $name);
+            return 'ERROR not found in Archive/could not get at all!';
+        }
 
         foreach ($list as $file) {
             $files[filemtime($file)] = $file;
@@ -2566,7 +2590,7 @@ class GraphicsController extends Controller
         } else {
             $url = url("/graphics/sub_screenshot/" . $batch_number);
         }
-        
+
         if (!file_exists($this->sort_root . 'summaries/')) {
             mkdir($this->sort_root . 'summaries/');
         }
@@ -2576,25 +2600,25 @@ class GraphicsController extends Controller
         set_time_limit(0);
 
         //$count = 1;
-/**
-        do {
-            try {
-                $x = shell_exec('xvfb-run --server-args="-screen 0, 1024x768x24" wkhtmltopdf ' . $url . ' ' . $file . " > /dev/null 2>&1 &");
-            } catch (\Exception $e) {
-                Log::error('Error creating sublimation summary for batch ' . $batch_number);
-                Log::error($e->getMessage());
-            }
-            $count++;
-        } while (!file_exists($file) && $count < 3);
-**/
+        /**
+         * do {
+         * try {
+         * $x = shell_exec('xvfb-run --server-args="-screen 0, 1024x768x24" wkhtmltopdf ' . $url . ' ' . $file . " > /dev/null 2>&1 &");
+         * } catch (\Exception $e) {
+         * Log::error('Error creating sublimation summary for batch ' . $batch_number);
+         * Log::error($e->getMessage());
+         * }
+         * $count++;
+         * } while (!file_exists($file) && $count < 3);
+         **/
 
-        try{
+        try {
             $x = shell_exec('xvfb-run --server-args="-screen 0, 1024x768x24" wkhtmltopdf ' . $url . ' ' . $file . " > /dev/null 2>&1");
-        }catch (\Exception $e){
+        } catch (\Exception $e) {
             Log::error('Error creating sublimation summary for batch ' . $batch_number);
             Log::error($e->getMessage());
         }
-        
+
 
         try {
             $y = shell_exec("pdfcrop $file $file > /dev/null 2>&1");
@@ -2644,19 +2668,19 @@ class GraphicsController extends Controller
 //        	Log::error($e->getMessage());
 //        	Log::error($y);
 //        }
-/**
-        $count = 1;
-        do {
-            try {
-                $y = shell_exec("pdfcrop $file $file > /dev/null 2>&1 &");
-            } catch (\Exception $e) {
-                Log::error('Error cropping sublimation summary for batch ' . $batch_number);
-                Log::error($e->getMessage());
-                Log::error($y);
-            }
-            $count++;
-        } while (!strpos($y, 'page written') && $count < 3);
-**/
+        /**
+         * $count = 1;
+         * do {
+         * try {
+         * $y = shell_exec("pdfcrop $file $file > /dev/null 2>&1 &");
+         * } catch (\Exception $e) {
+         * Log::error('Error cropping sublimation summary for batch ' . $batch_number);
+         * Log::error($e->getMessage());
+         * Log::error($y);
+         * }
+         * $count++;
+         * } while (!strpos($y, 'page written') && $count < 3);
+         **/
         if (!file_exists($file)) {
             Log::error('Error sublimation summary does not exist for batch ' . $batch_number);
             return false;
@@ -2899,11 +2923,11 @@ class GraphicsController extends Controller
 //        $imageLink = $options['Custom_EPS_download_link'] ?? 0;
 
 
-        if($request->has("fetch_link_from_zakeke_cli")) {
+        if ($request->has("fetch_link_from_zakeke_cli")) {
             $shortOrder = $request->get("short_order");
 
 
-            if(!$request->has("pws")) {
+            if (!$request->has("pws")) {
                 $response = shell_exec("zakeke -user 44121 -key 2d91PpFG6QJ0NmXsImWCXSzAMPCiRwMuX6D7DUHSIcM. -data " . $request->get("short_order"));
             } else {
                 $response = shell_exec("zakeke -user 65580 -key zccXIpB1k2J-quu2BBbwuNZVpvussjoWgTJpCS1lYyM. -data " . $request->get("short_order"));
@@ -3000,7 +3024,7 @@ class GraphicsController extends Controller
 
                             $stations = BatchRoute::routeThroughStations($batch->batch_route_id, $station_name);
 
-                            if(stripos($stations, "S-GGR-INDIA") !== false) {
+                            if (stripos($stations, "S-GGR-INDIA") !== false) {
                                 $batch->station_id = 264;
                             } else {
                                 $batch->station_id = 92;
@@ -3034,7 +3058,7 @@ class GraphicsController extends Controller
                              * If it is, then use that path instead lmao
                              */
 
-                            if(!file_exists($imageLink)) {
+                            if (!file_exists($imageLink)) {
                                 Log::error("FILE DID NOT EXIST " . $imageLink);
                             }
 
@@ -3073,7 +3097,6 @@ class GraphicsController extends Controller
                                     ImageHelper::createThumb($this->sort_root . "archive/" . $filename, 0, base_path() . '/public_html' . $thumb, 350);
 
 
-
                                 } catch (\Exception $e) {
                                     Log::error('Batch uploadFile createThumb: ' . $e->getMessage());
                                 }
@@ -3083,18 +3106,18 @@ class GraphicsController extends Controller
                                 $image_path2 = $this->sort_root . "archive/" . str_replace(".pdf", ".jpg", $filename);
 
 
-                                if(stripos($imageLink, ".pdf") !== false) {
+                                if (stripos($imageLink, ".pdf") !== false) {
                                     file_put_contents($image_path2, file_get_contents($thumb_nail));
                                     unlink($image_path);
                                 }
 
-                                if(stripos($items->child_sku, "30X40") !== false) {
+                                if (stripos($items->child_sku, "30X40") !== false) {
 
                                     shell_exec("convert -density 150 -resize 4650x6150! " . $image_path2 . " " . $image_path2);
                                     Log::info("CONVERTING PATH " . $image_path2 . " to be converted");
                                 }
 
-                                if($request->has("updated_by") or $isJob) {
+                                if ($request->has("updated_by") or $isJob) {
                                     Batch::note($batch->batch_number, $batch->station_id, '111', 'Graphic Uploaded to Main (automatically from ' . $request->get("updated_by") . ')');
                                 } else {
                                     Batch::note($batch->batch_number, $batch->station_id, '111', 'Graphic Uploaded to Main (Fetched manually using button)');

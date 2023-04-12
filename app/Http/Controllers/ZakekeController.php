@@ -178,18 +178,18 @@ class ZakekeController extends Controller
      */
     public function fetchAll(string $type)
     {
-
-        if (!Cache::get("ZAKEKE_" . strtoupper($type))) {
-
-            Log::info("Zakeke Status was off for  " . print_r(\request()->all(), true));
-
-            dd(
-                [
-                    "Status" => true,
-                    "Message" => "The cronjob has been turned off, cannot fetch"
-                ]
-            );
-        }
+//
+//        if (!Cache::get("ZAKEKE_" . strtoupper($type))) {
+//
+//            Log::info("Zakeke Status was off for  " . print_r(\request()->all(), true));
+//
+//            dd(
+//                [
+//                    "Status" => true,
+//                    "Message" => "The cronjob has been turned off, cannot fetch"
+//                ]
+//            );
+//        }
 
         /*
          * Turned on, can now continue
@@ -394,15 +394,15 @@ class ZakekeController extends Controller
         }
 
 
-//            Log::info("---------------------------------------");
-//            Log::info("          ZAKEKE MASS                  ");
-//            Log::info("Successfully fetched " . count($hasGraphic) . " out of " . count($orders));
-//            Log::info("Total Orders (did not match filter) " . abs($filteredNum));
-//            Log::info("Total Graphic Updated" . count($hasGraphic));
-//            Log::info("Orders Ids Updated" . print_r($hasGraphic, true));
-//            Log::info("Orders that was in array " . implode(",", array_keys($before)));
-//            Log::info("Skipped order (already updated) " . implode(",", array_keys($skipped)));
-//            Log::info("---------------------------------------");
+            Log::info("---------------------------------------");
+            Log::info("          ZAKEKE MASS                  ");
+            Log::info("Successfully fetched " . count($hasGraphic) . " out of " . count($orders));
+            Log::info("Total Orders (did not match filter) " . abs($filteredNum));
+            Log::info("Total Graphic Updated" . count($hasGraphic));
+            Log::info("Orders Ids Updated" . print_r($hasGraphic, true));
+            Log::info("Orders that was in array " . implode(",", array_keys($before)));
+            Log::info("Skipped order (already updated) " . implode(",", array_keys($skipped)));
+            Log::info("---------------------------------------");
 
             return response()->json(
                 [

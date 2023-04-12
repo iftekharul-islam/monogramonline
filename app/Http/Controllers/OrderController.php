@@ -386,7 +386,7 @@ class OrderController extends Controller
                 "fields" => "created_at,id,name,total-price"
             );
 
-            $orderInfo = $helper->shopify_call("/admin/api/2020-10/orders.json", $array, 'GET');
+            $orderInfo = $helper->shopify_call("/admin/api/2023-01/orders.json", $array, 'GET');
             $orderInfo = json_decode($orderInfo['response'], JSON_PRETTY_PRINT);
 
             if (isset($orderInfo['errors'])) {
@@ -458,7 +458,7 @@ class OrderController extends Controller
     public function synOrderByDate(Request $request)
     {
 //        return false;
-        # https://order.monogramonline.com/synorderbydate?created_at_max=2020-04-20&created_at_min=2020-03-20
+        # https://order.monogramonline.com/synorderbydate?created_at_max=2023-01-20&created_at_min=2020-03-20
         $shopifyOrdeIds = [];
         $ordersIn5p = [];
 
@@ -491,7 +491,7 @@ class OrderController extends Controller
 //                "since_id" => 2942795514019,
 //                "fields" => "created_at,id,name,total-price"
 //            );
-            $orderInfo = $helper->shopify_call("/admin/api/2020-10/orders.json", $array, 'GET');
+            $orderInfo = $helper->shopify_call("/admin/api/2023-01/orders.json", $array, 'GET');
             $orderInfo = json_decode($orderInfo['response'] ?? [], JSON_PRETTY_PRINT);
 
             if (isset($orderInfo['errors'])) {
@@ -556,7 +556,7 @@ class OrderController extends Controller
 //                $orderInfo
             );
         } else {
-            echo "orderno: Order Not found, https://monogramonline.myshopify.com/admin/api/2020-01/orders.json?created_at_max=2020-04-13T23:59:59-05:00&created_at_min=2020-04-01T00:00:00-05:00&fields=id,created_at";
+            echo "orderno: Order Not found, https://monogramonline.myshopify.com/admin/api/2023-01/orders.json?created_at_max=2020-04-13T23:59:59-05:00&created_at_min=2020-04-01T00:00:00-05:00&fields=id,created_at";
         }
     }
 
@@ -575,9 +575,9 @@ class OrderController extends Controller
         #'2112301105285'
         $array = ['ids' => $ids];
         $helper = new Helper;
-        $orderInfo = $helper->shopify_call("/admin/api/2020-04/orders.json", $array, 'GET');
+        $orderInfo = $helper->shopify_call("/admin/api/2023-01/orders.json", $array, 'GET');
         try {
-         $orderInfo = json_decode($orderInfo['response'], JSON_PRETTY_PRINT);
+            $orderInfo = json_decode($orderInfo['response'], JSON_PRETTY_PRINT);
         } catch (\Exception $e) {
             Log::error('getShopifyOrderError = '. $e->getMessage());
 
@@ -767,11 +767,11 @@ class OrderController extends Controller
 
     public function getShopifyproduct($productId)
     {
-
+//5551613214883
         $array = [];
 
         $helper = new Helper;
-        $products = $helper->shopify_call("/admin/api/2020-01/products/" . $productId . ".json", $array, 'GET');
+        $products = $helper->shopify_call("/admin/api/2023-01/products/" . $productId . ".json", $array, 'GET');
         $products = json_decode($products['response'], JSON_PRETTY_PRINT);
         if (isset($products['errors'])) {
 //            dd("errors", $products);
@@ -1385,7 +1385,7 @@ class OrderController extends Controller
                             Log::info('Zakeke PDF URL ' . $pdfUrl);
                             $ItemOption['zakekezip'] = addslashes($value);
 
-                          //  $childSku = Helper::getChildSku($item);
+                            //  $childSku = Helper::getChildSku($item);
 //                            if(ZakekeController::hasSure3D($childSku, $request)) {
 //                                $ItemOption['Custom_EPS_download_link'] = addslashes($pdfUrl);
 //                            }
@@ -1490,10 +1490,10 @@ class OrderController extends Controller
                         }
                     }
 
-                   if($bypass) {
-                     $order->order_status = 15;
-                     $order->save();  # Save Later
-                  }
+                    if($bypass) {
+                        $order->order_status = 15;
+                        $order->save();  # Save Later
+                    }
 
                 }
 
@@ -1958,7 +1958,7 @@ class OrderController extends Controller
     {
         // Set variables for our request
         $shop = "monogramonline"; #$_GET['shop'];
-        $api_key = "392621f04073349a7e23b28e046e8052";#previous --- //"b1f4196ff20279e3747ad1c048e7d0d4";
+        $api_key = "8d31a3f2242c3b3d1370d6cba9442b47";#previous --- //"b1f4196ff20279e3747ad1c048e7d0d4";
 //        $scopes = "read_orders,write_products";
         $scopes = "read_orders,write_orders,read_products,write_products,read_customers,write_customers,read_inventory,write_inventory,read_fulfillments,write_fulfillments,read_assigned_fulfillment_orders,write_assigned_fulfillment_orders,read_merchant_managed_fulfillment_orders,write_merchant_managed_fulfillment_orders,read_third_party_fulfillment_orders,write_third_party_fulfillment_orders,read_shipping,write_shipping,read_checkouts,write_checkouts,read_price_rules,write_price_rules,read_discounts,write_discounts,read_product_listings,read_locations";
 //        $redirect_uri = "http://dev.monogramonline.com/generate_shopify_token"; #"http://localhost/generate_token.php";
@@ -1975,8 +1975,8 @@ class OrderController extends Controller
     public function generateShopifyToken(Request $request)
     {
 // Set variables for our request
-        $api_key = "392621f04073349a7e23b28e046e8052";#previous --- //"b1f4196ff20279e3747ad1c048e7d0d4";
-        $shared_secret = "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";#previous --- //"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";
+        $api_key = "8d31a3f2242c3b3d1370d6cba9442b47";#previous --- //"b1f4196ff20279e3747ad1c048e7d0d4";
+        $shared_secret = "7cf2c4f1481efe48b38afc6d2287a419";#previous --- //"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";
         $params = $request->all();  #$_GET; // Retrieve all request parameters
         $hmac = $request->get('hmac');    #$_GET['hmac']; // Retrieve HMAC request parameter
 
@@ -2031,12 +2031,14 @@ class OrderController extends Controller
             ];
 
             $helper = new Helper;
-            $date = $request->get("date", "2020-01");
-            $orderInfo = $helper->shopify_call("/admin/api/$date/orders.json", $array, 'GET');
+            $date = $request->get("date", "2023-01");
+            $orderInfo = $helper->shopify_call("/admin/api/2023-01/orders.json", $array, 'GET');
             $orderInfo = json_decode($orderInfo['response'], JSON_PRETTY_PRINT);
+//            dd($orderInfo);
             dd($orderInfo, $orderInfo['orders'][0]['line_items']);
 
         } else {
+            //https://order.monogramonline.com/getShopifyorderbyordernumber?orderno=4903244300451
             echo "orderno: Order Not found, http://dev.monogramonline.com/getShopifyorderbyordernumber?orderno=21123011052851";
         }
     }

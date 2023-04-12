@@ -37,6 +37,10 @@
 						<td>{{$product->product_name}}</td>
 					</tr>
 					<tr>
+						<td>Product manufacture</td>
+						<td>{{$product->manufacture->name ?? 'N/A'}}</td>
+					</tr>
+					<tr>
 						<td>Product description</td>
 						<td>{{$product->product_description}}</td>
 					</tr>

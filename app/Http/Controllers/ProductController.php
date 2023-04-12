@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Manufacture;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ProductAddRequest;
@@ -19,7 +20,7 @@ class ProductController extends Controller
 
 	public function index (Request $request)
 	{
-		$products = Product::where('is_deleted', 0)
+		$products = Product::with('manufacture')->where('is_deleted', 0)
 						   ->searchInOption($request->get('search_in'), $request->get("search_for"))
 						   ->searchProductionCategory($request->get('product_production_category'))
 						   ->latest()
@@ -117,7 +118,7 @@ class ProductController extends Controller
 	public function show ($id)
 	{
 		// if searching for inactive or deleted product
-		$product = Product::with('production_category')
+		$product = Product::with('production_category', 'manufacture')
 						  ->where('is_deleted', 0)
 						  ->find($id);
 		if ( !$product ) {
@@ -149,7 +150,9 @@ class ProductController extends Controller
 												   ->pluck('production_category_description', 'id')
 												   ->prepend('Select production category', '');
 
-		return view('products.edit', compact('product', 'production_categories'));
+        $manufactures = Manufacture::get()->pluck('name', 'id');
+
+		return view('products.edit', compact('product', 'production_categories', 'manufactures'));
 	}
 
 	public function update (ProductUpdateRequest $request, $id)
@@ -159,7 +162,11 @@ class ProductController extends Controller
 		if ( !$product ) {
 			return redirect()->back()->withErrors('Product Not Found');
 		}
-	
+
+        if ( $request->exists('manufacture_id') ) {
+            $product->manufacture_id = $request->get('manufacture_id');
+        }
+
 		if ( $request->exists('id_catalog') ) {
 			$product->id_catalog = $request->get('id_catalog');
 		}

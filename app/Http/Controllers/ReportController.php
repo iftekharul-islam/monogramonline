@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Manufacture;
 use Illuminate\Http\Request;
 
 use App\Http\Requests;
@@ -189,6 +190,7 @@ class ReportController extends Controller
         $request->has('company') ? $company_id = $request->get('company') : $company_id = null;
 		$request->has('max_date') ? $max_date = $request->get('max_date') . ' 23:59:59' : $max_date = date("Y-m-d") . ' 23:59:59';
 		$request->has('batch_type') ? $batch_type = $request->get('batch_type') : $batch_type = '%';
+        $manufacture_id = $request->manufacture_id ?? null;
 
 		$dates = array();
 		$date[] = date("Y-m-d");
@@ -196,13 +198,16 @@ class ReportController extends Controller
 		$date[] = date("Y-m-d", strtotime('-4 days') );
 		$date[] = date("Y-m-d", strtotime('-7 days') );
 		$date[] = date("Y-m-d", strtotime('-8 days') );
-		
-		$items = Item::join('batches', 'batches.batch_number', '=', 'items.batch_number')
+
+        $manufactures = Manufacture::get();
+
+        $items = Item::join('batches', 'batches.batch_number', '=', 'items.batch_number')
 										->join('orders', 'items.order_5p', '=', 'orders.id')
 										->join('stations', 'batches.station_id', '=', 'stations.id')
 										->join('sections', 'stations.section', '=', 'sections.id')
 										->searchStore($store_ids)
-										->where('batches.status', 2)
+										->withManufacture($manufacture_id)
+                                        ->where('batches.status', 2)
 										->where('batches.batch_number', 'LIKE', $batch_type)
 										->where('batches.min_order_date', '<', $max_date)
 										->where('items.item_status', 1)
@@ -214,6 +219,7 @@ class ReportController extends Controller
 										->orderBy ( 'stations.type', 'ASC')
 										->orderBy ( 'stations.station_description', 'ASC')
 										->selectRaw("
+										    items.manufacture_id,
 											SUM(items.item_quantity) as items_count, 
 											count(items.id) as lines_count, 
 											stations.station_name,
@@ -237,6 +243,7 @@ class ReportController extends Controller
 										->join('orders', 'items.order_5p', '=', 'orders.id')
 										->join('stations', 'batches.station_id', '=', 'stations.id')
 										->searchStore($store_ids)
+                                        ->withManufacture($manufacture_id)
 										->where('batches.status', 2)
 										->where('batches.batch_number', 'LIKE', $batch_type)
 										->where('batches.min_order_date', '<', $max_date)
@@ -268,6 +275,7 @@ class ReportController extends Controller
 										->join('batches', 'items.batch_number', '=', 'batches.batch_number')
 										->join('sections', 'batches.section_id', '=', 'sections.id')
 										->searchStore($store_ids)
+                                        ->withManufacture($manufacture_id)
 										->where('batches.min_order_date', '<', $max_date)
 										->where('batches.batch_number', 'LIKE', $batch_type)
 										->where('items.item_status', 4)
@@ -294,6 +302,7 @@ class ReportController extends Controller
 									 ->join('batches', 'items.batch_number', '=', 'batches.batch_number')
 									 ->join('sections', 'batches.section_id', '=', 'sections.id')
 									 ->searchStore($store_ids)
+                                     ->withManufacture($manufacture_id)
 									 ->where('batches.min_order_date', '<', $max_date)
 									 ->where('batches.batch_number', 'LIKE', $batch_type)
 									 ->where ( 'items.is_deleted', '0' )
@@ -324,6 +333,7 @@ class ReportController extends Controller
 										->where('orders.order_status', 4) // exclude address holds
 										->where('items.batch_number', 'LIKE', $batch_type)
 										->searchStore($store_ids)
+                                        ->withManufacture($manufacture_id)
 										->where('orders.order_date', '<', $max_date)
 										->selectRaw("
 											SUM(items.item_quantity) as items_count, 
@@ -338,6 +348,7 @@ class ReportController extends Controller
 		$CS_rejects = Item::join('rejections', 'items.id', '=', 'rejections.item_id')
 									 ->join('orders', 'items.order_5p', '=', 'orders.id')
 									 ->searchStore($store_ids)
+                                     ->withManufacture($manufacture_id)
 									 ->where('orders.order_date', '<', $max_date)
 									 ->where ( 'items.is_deleted', '0' )
 									 ->where('items.batch_number', 'LIKE', $batch_type)
@@ -357,6 +368,7 @@ class ReportController extends Controller
 																	 
 		$CS = Item::join('orders', 'items.order_5p', '=', 'orders.id')
 										->searchStore($store_ids)
+                                        ->withManufacture($manufacture_id)
 										->where('orders.order_date', '<', $max_date)
 										->where('orders.order_status', '>', 9)
 										->where('orders.is_deleted', '0')
@@ -391,6 +403,7 @@ class ReportController extends Controller
 
 		$unbatched = Item::join('orders', 'items.order_5p', '=', 'orders.id')
 											->searchStore($store_ids)
+                                            ->withManufacture($manufacture_id)
 											->where('orders.order_date', '<', $max_date)
 											->whereNull('items.tracking_number')
 											->where('items.batch_number', '=', '0')
@@ -415,6 +428,7 @@ class ReportController extends Controller
 		$shipped_today = Item::join('batches', 'items.batch_number', '=', 'batches.batch_number')
 													->join('sections', 'batches.section_id', '=', 'sections.id')
 													->searchStore($store_ids)
+                                                    ->withManufacture($manufacture_id)
 													->where('batches.min_order_date', '<', $max_date)
 													->where('batches.batch_number', 'LIKE', $batch_type)
 													->searchTrackingDate($today) 
@@ -451,9 +465,9 @@ class ReportController extends Controller
 		}
 
         $companies = Store::$companies;
-//        return $items;
+
       //  dd($items);
-		return view('reports.section', compact ('items', 'qc', 'backorders', 'rejects', 'WAP', 'unbatched', 'shipped_today', 'rejected_today',
+		return view('reports.section', compact ('manufactures', 'items', 'qc', 'backorders', 'rejects', 'WAP', 'unbatched', 'shipped_today', 'rejected_today',
 																							'date', 'section', 'graphic_statuses', 'now', 'CS', 'order_statuses', 'CS_rejects', 'total',
 																							'stores', 'store_ids', 'store_link', 'max_date', 'batch_type','companies'
 																						));

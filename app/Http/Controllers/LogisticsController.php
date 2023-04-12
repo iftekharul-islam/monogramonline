@@ -97,14 +97,14 @@ class LogisticsController extends Controller
                 ->selectRaw('parameter_options.*, inventory_unit.stock_no_unique')
                 ->groupBy('parameter_options.child_sku')
                 ->orderBy('parameter_options.parent_sku', 'ASC')
-                ->paginate(100);
+                ->paginate(10);
         } else {
             $options = Option::with('product', 'route.template', 'inventoryunit_relation.inventory', 'design')
                 ->leftjoin('inventory_unit', 'inventory_unit.child_sku', '=', 'parameter_options.child_sku')
                 ->whereIn('parameter_options.child_sku', $request->get('skus'))
                 ->groupBy('parameter_options.child_sku')
                 ->orderBy('parameter_options.parent_sku', 'ASC')
-                ->paginate(100);
+                ->paginate(10);
         }
 
         $batch_routes = BatchRoute::where('is_deleted', 0)
@@ -297,8 +297,7 @@ class LogisticsController extends Controller
         }
 
 
-        if ( $parameter_option->orientation != trim($request->get('orientation'))) {
-
+        if ($parameter_option->orientation != trim($request->get('orientation'))) {
             $parameter_option->orientation = trim($request->get('orientation'));
             $update_flag = TRUE;
         }
@@ -359,7 +358,7 @@ class LogisticsController extends Controller
 
         $data = [];
         $file = "/var/www/order.monogramonline.com/BypassOption.json";
-        if(file_exists($file)) {
+        if (file_exists($file)) {
             $data = json_decode(file_get_contents($file), true);
         }
         $bypass = $data[$options['child_sku']] ?? false;
@@ -395,12 +394,12 @@ class LogisticsController extends Controller
         $sure3d = trim($request->get('sure3d'), '');
 
 
-        $bypassOption = (bool) trim($request->get('bypass_option'), '');
+        $bypassOption = (bool)trim($request->get('bypass_option'), '');
 
         $file = "/var/www/order.monogramonline.com/BypassOption.json";
 
         $data = [];
-        if(file_exists($file)) {
+        if (file_exists($file)) {
             $data = json_decode(file_get_contents($file), true);
         }
         $data[$child_sku] = $bypassOption;

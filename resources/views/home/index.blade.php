@@ -26,11 +26,12 @@
 				<div>
 					<h5 class = "page-header">Inventory</h5>
 					<ul>
-						@if(in_array(array_search('purchases', $access), $user_access))<li><a href = "/purchases">Purchase Orders</a></li>@endif
-						@if(in_array(array_search('Inventory Admin', $access), $user_access))<li><a href = "/purchases/purchasedinvproducts">Purchase Products List</a></li>@endif
-						@if(in_array(array_search('purchases', $access), $user_access))<li><a href = "/purchases/vendors">Vendors</a></li>@endif
+						@if(in_array(array_search('Purchasing', $access), $user_access))<li><a href = "/purchases">Purchase Orders</a></li>@endif
+						@if(in_array(array_search('Purchasing', $access), $user_access))<li><a href = "/purchases/purchasedinvproducts">Purchase Products List</a></li>@endif
+						@if(in_array(array_search('Purchasing', $access), $user_access))<li><a href = "/purchases/vendors">Vendors</a></li>@endif
 						@if(in_array(array_search('Inventory', $access), $user_access))<li><a href = "/inventories">Inventory</a></li>@endif
 						<li><a href = "/inventory_admin/inventory_adjustments">Adjustments</a></li>
+{{--							@if(in_array(array_search('Inventory Admin', $access), $user_access))<li><a href = "/inventory_admin/inventory_adjustments">Adjustments</a></li>@endif--}}
 					</ul>
 				</div>
 				<div>
@@ -49,14 +50,24 @@
 						<li><a href = "/users">Users</a></li>
 						<li><a href = "/prod_config/sections">Sections</a></li>
 						<li><a href = "/prod_config/stations">Stations</a></li>
+{{--						@if(in_array(array_search('Users', $access), $user_access))<li><a href = "/users">Users</a></li>@endif--}}
+{{--						@if(in_array(array_search('Sections', $access), $user_access))<li><a href = "/prod_config/sections">Sections</a></li>@endif--}}
+{{--						@if(in_array(array_search('Stations', $access), $user_access))<li><a href = "/prod_config/stations">Stations</a></li>@endif--}}
 						<!-- <li><a href = "/prod_config/work_config">Configure Production</a></li> -->
 						<li><a href = "/prod_config/templates">Route Templates</a></li>
 						<li><a href = "/prod_config/batch_routes">Routes</a></li>
+{{--						@if(in_array(array_search('Route Templates', $access), $user_access))<li><a href = "/prod_config/templates">Route Templates</a></li>@endif--}}
+{{--						@if(in_array(array_search('Routes', $access), $user_access))<li><a href = "/prod_config/batch_routes">Routes</a></li>@endif--}}
+
 						<!-- <li><a href = "/export_station">Export station log</a></li> -->
 						<li><a href = "/prod_config/rejection_reasons">Rejection reasons</a></li>
 						<li><a href = "/logistics/parameters">Parameters</a></li>
+{{--						@if(in_array(array_search('Rejection reasons', $access), $user_access))<li><a href = "/prod_config/rejection_reasons">Rejection reasons</a></li>@endif--}}
+{{--						@if(in_array(array_search('Parameters', $access), $user_access))<li><a href = "/logistics/parameters">Parameters</a></li>@endif--}}
 						<!-- <li><a href = "/products_config/master_categories">Categories</a></li> -->
 						<li><a href = "/products_config/production_categories">Production Categories</a></li>
+						<li><a href = "/manufactures">Manufactures</a></li>
+{{--						@if(in_array(array_search('Production Categories', $access), $user_access))<li><a href = "/products_config/production_categories">Production Categories</a></li>@endif--}}
 						<!-- <li><a href = "/products_config/sales_categories">Sales Category</a></li> -->
 						<!-- <li><a href = "/products_config/collections">Collection</a></li> -->
 						<!-- <li><a href = "/products_config/occasions">Occasion</a></li> -->
@@ -69,12 +80,17 @@
 					<ul>
 						<li><a href = "/preview_batch">Preview Batches</a></li>
 						<li><a href = "/prod_report/unbatchable">Unbatchable Items</a></li>
+{{--						@if(in_array(array_search('Preview Batches', $access), $user_access))<li><a href = "/preview_batch">Preview Batches</a></li>@endif--}}
+{{--						@if(in_array(array_search('Unbatchable Items', $access), $user_access))<li><a href = "/prod_report/unbatchable">Unbatchable Items</a></li>@endif--}}
+
 						@if(in_array(array_search('Graphics', $access), $user_access))<li><a href = "/graphics">Create Graphics</a></li>@endif
 						@if(in_array(array_search('Graphics', $access), $user_access))<li><a href = "/graphics/print_sublimation">Print Sublimation</a></li>@endif
 						@if(in_array(array_search('Graphics', $access), $user_access))<li><a href = "/graphics/sent_to_printer">Sent to Printer</a></li>@endif
+{{--						@if(in_array(array_search('print_batch', $access), $user_access))<li><a href = "/summaries/print">Print Batch Summaries</a></li>@endif--}}
 						<li><a href = "/summaries/print">Print Batch Summaries</a></li>
 						@if(in_array(array_search('Move to Production', $access), $user_access))<li><a href = "/move_to_production">Move to Production</a></li>@endif
-						<li><a href = "/move_to_qc">Move to QC</a></li>
+{{--						@if(in_array(array_search('Move to Production', $access), $user_access))<li><a href = "/move_to_qc">Move to QC</a></li>@endif--}}
+						@if(in_array(array_search('Move to Production', $access), $user_access))<li><a href = "/move_to_qc">Move to QC</a></li>@endif
 					</ul>
 				</div>
 				<div>
@@ -82,8 +98,11 @@
 					<ul>
 						<li><a href = "/batches/list">Batch List</a></li>
 						<li><a href = "/batches/list_graphic">Batch List Graphic</a></li>
+{{--						@if(in_array(array_search('Batch List', $access), $user_access))<li><a href = "/batches/list">Batch List</a></li>@endif--}}
+{{--						@if(in_array(array_search('Batch List Graphic', $access), $user_access))<li><a href = "/batches/list_graphic">Batch List Graphic</a></li>@endif--}}
 						{{-- <li><a href = "/batches/summaries">Print Batch Summaries</a></li> --}}
 						<li><a href = "/picking/summary">Inventory Summary</a></li>
+{{--						@if(in_array(array_search('Inventory Summary', $access), $user_access))<li><a href = "/picking/summary">Inventory Summary</a></li>@endif--}}
 						@if(in_array(array_search('Move Batches', $access), $user_access))<li><a href = "/move_next">Move Batches</a></li>@endif
 						@if(in_array(array_search('Production', $access), $user_access))<li><a href = "/production/status">Production Stations</a></li>@endif
 						@if(in_array(array_search('Rejects Screen', $access), $user_access))<li><a href = "/rejections">Rejects</a></li>@endif
@@ -106,11 +125,14 @@
 					<h5 class = "page-header">Customer Service</h5>
 					<ul>
 						@if(in_array(array_search('Orders', $access), $user_access))<li><a href = "/orders/list">Orders</a></li>@endif
-						@if(in_array(array_search('Items List', $access), $user_access))<li><a href = "/items">Items List</a></li>@endif
+						@if(in_array(array_search('Item List', $access), $user_access))<li><a href = "/items">Items List</a></li>@endif
 						<li><a href = "/items_graphic">Items List Graphic</a></li>
+{{--							@if(in_array(array_search('Items List Graphic', $access), $user_access))<li><a href = "/items_graphic">Items List Graphic</a></li>@endif--}}
 						@if(in_array(array_search('Customer Service', $access), $user_access))<li><a href = "/customer_service/index">Customer Service</a></li>@endif
 						<li><a href = "/customer_service/email_templates">Email Templates</a></li>
 						<li><a href = "/customer_service/bulk_email">Send Bulk Emails</a></li>
+{{--							@if(in_array(array_search('Email Templates', $access), $user_access))<li><a href = "/customer_service/email_templates">Email Templates</a></li>@endif--}}
+{{--							@if(in_array(array_search('Send Bulk Emails', $access), $user_access))<li><a href = "/customer_service/bulk_email">Send Bulk Emails</a></li>@endif--}}
 						@if(in_array(array_search('Manual Orders', $access), $user_access))<li><a href = "/orders/manual"><strong>Manual Orders</strong></a></li>@endif
 					</ul>
 				</div>
@@ -129,6 +151,18 @@
 						@if(in_array(array_search('Other Reports', $access), $user_access))<li><a href = "/report/sales">Sales Summary</a></li>@endif
 						<!-- <li><a href = "/report/profit">Profit Report</a></li> -->
 						<li><a href = "/report/coupon">Coupon Report</a></li>
+
+{{--						@if(in_array(array_search('Stations summary', $access), $user_access))<li><a href = "prod_report/station_summary">Stations summary</a></li>@endif--}}
+{{--						@if(in_array(array_search('Section Report', $access), $user_access))<li><a href = "/prod_report/summary">Section Report</a></li>@endif--}}
+{{--						@if(in_array(array_search('Section Report Filter', $access), $user_access))<li><a href = "/prod_report/summaryfilter">Section Report Filter</a></li>@endif--}}
+{{--						@if(in_array(array_search('Stock Report', $access), $user_access))<li><a href = "/prod_report/stockreport">Stock Report</a></li>@endif--}}
+{{--						@if(in_array(array_search('Station logs', $access), $user_access))<li><a href = "/report/logs">Station logs</a></li>@endif--}}
+{{--						@if(in_array(array_search('Reject Report', $access), $user_access))<li><a href = "report/rejects">Reject Report</a></li>@endif--}}
+{{--						@if(in_array(array_search('Ship Date Report', $access), $user_access))<li><a href = "/report/ship_date">Ship Date Report</a></li>@endif--}}
+{{--						@if(in_array(array_search('Order Items Report', $access), $user_access))<li><a href = "/report/items">Order Items Report</a></li>@endif--}}
+{{--						@if(in_array(array_search('WAP Missing Items', $access), $user_access))<li><a href = "/prod_report/missing_report">WAP Missing Items</a></li>@endif--}}
+{{--						@if(in_array(array_search('Other Reports', $access), $user_access))<li><a href = "/report/sales">Sales Summary</a></li>@endif--}}
+{{--						@if(in_array(array_search('Coupon Report', $access), $user_access))<li><a href = "/report/coupon">Coupon Report</a></li>@endif--}}
 					</ul>
 				</div>
 				<div>
@@ -138,6 +172,9 @@
 						@if(in_array(array_search('Import Orders', $access), $user_access))<li><a href = "/transfer/import">Import Orders</a></li>@endif
 						<li><a href = "/transfer/export">Export Shipments</a></li>
 						<li><a href = "/transfer/export?drop=true">Export Shipments (Dropship)</a></li>
+
+{{--							@if(in_array(array_search('Export Shipments', $access), $user_access))<li><a href = "/transfer/export">Export Shipments</a></li>@endif--}}
+{{--							@if(in_array(array_search('Export Shipments Dropship', $access), $user_access))<li><a href = "/transfer/export?drop=true">Export Shipments (Dropship)</a></li>@endif--}}
 					</ul>
 				</div>
 

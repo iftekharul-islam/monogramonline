@@ -641,6 +641,16 @@ class Item extends Taskable
 			return $query->where('items.store_id', 'REGEXP', implode("|", $values));
 		}
 	}
+
+    public function scopeWithManufacture ($query, $manufacture_id)
+    {
+        if ( !$manufacture_id ) {
+            return;
+        }
+
+        return $query->where('items.manufacture_id', $manufacture_id);
+
+    }
 	
 	public function scopeSearchTrackingDate ($query, $tracking_date)
 	{
