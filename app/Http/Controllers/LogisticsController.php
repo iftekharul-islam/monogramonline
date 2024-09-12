@@ -155,6 +155,7 @@ class LogisticsController extends Controller
 
     public function update_skus(OptionUpdateRequest $request)
     {
+//        dd($request->all());
         if ($request->has('child_skus')) {
             $skus = array_filter($request->get('child_skus'));
 
@@ -247,7 +248,7 @@ class LogisticsController extends Controller
 
     public function update_ajax(Request $request)
     {
-        $parameter_option = Option::with('design')
+	$parameter_option = Option::with('design')
             ->where('unique_row_value', $request->get('unique_row_value'))
             ->first();
 

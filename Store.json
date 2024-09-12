@@ -1,0 +1,154 @@
+{
+    "Kohls": {
+        "DROPSHIP": true,
+        "DROPSHIP_IMPORT": true
+    },
+    "DevTest": {
+        "DROPSHIP": true,
+        "DROPSHIP_IMPORT": true
+    },
+    "Natico Originals - 3P": {
+        "DROPSHIP": false,
+        "DROPSHIP_IMPORT": false
+    },
+    "Natico Originals - Blank": {
+        "DROPSHIP": false,
+        "DROPSHIP_IMPORT": false
+    },
+    "Shopify - MonogramOnline.com": {
+        "DROPSHIP": true,
+        "DROPSHIP_IMPORT": true
+    },
+    "Wayfair Natico": {
+        "DROPSHIP": true,
+        "DROPSHIP_IMPORT": true
+    },
+    "JCPenney": {
+        "DROPSHIP": true,
+        "DROPSHIP_IMPORT": true
+    },
+    "Staples US": {
+        "DROPSHIP": true,
+        "DROPSHIP_IMPORT": true
+    },
+    "Staples Advantage US": {
+        "DROPSHIP": true,
+        "DROPSHIP_IMPORT": true
+    },
+    "Quill": {
+        "DROPSHIP": true,
+        "DROPSHIP_IMPORT": true
+    },
+    "Overstock": {
+        "DROPSHIP": true,
+        "DROPSHIP_IMPORT": true
+    },
+    "Macy's ": {
+        "DROPSHIP": true,
+        "DROPSHIP_IMPORT": true
+    },
+    "Personalize with style": {
+        "DROPSHIP": false,
+        "DROPSHIP_IMPORT": false
+    },
+    "Natico Originals - Customized": {
+        "DROPSHIP": false,
+        "DROPSHIP_IMPORT": false
+    },
+    "Amazon Vendor Natico": {
+        "DROPSHIP": false,
+        "DROPSHIP_IMPORT": true
+    },
+    "Natico Originals - F": {
+        "DROPSHIP": false,
+        "DROPSHIP_IMPORT": false
+    },
+    "Natico Originals - FL": {
+        "DROPSHIP": false,
+        "DROPSHIP_IMPORT": false
+    },
+    "Employee Orders": {
+        "DROPSHIP": false,
+        "DROPSHIP_IMPORT": false
+    },
+    "Wayfair": {
+        "DROPSHIP": false,
+        "DROPSHIP_IMPORT": false
+    },
+    "SAMPLES": {
+        "DROPSHIP": false,
+        "DROPSHIP_IMPORT": false
+    },
+    "Ebay Personalized Godfather ": {
+        "DROPSHIP": false,
+        "DROPSHIP_IMPORT": false
+    },
+    "Kodi Imports": {
+        "DROPSHIP": false,
+        "DROPSHIP_IMPORT": false
+    },
+    "Snugglepedia": {
+        "DROPSHIP": false,
+        "DROPSHIP_IMPORT": false
+    },
+    "Personalization Universe": {
+        "DROPSHIP": false,
+        "DROPSHIP_IMPORT": false
+    },
+    "All Inclusive - Carlos": {
+        "DROPSHIP": false,
+        "DROPSHIP_IMPORT": false
+    },
+    "Sears Online": {
+        "DROPSHIP": false,
+        "DROPSHIP_IMPORT": false
+    },
+    "ETSY ": {
+        "DROPSHIP": false,
+        "DROPSHIP_IMPORT": false
+    },
+    "Etsy": {
+        "DROPSHIP": false,
+        "DROPSHIP_IMPORT": false
+    },
+    "Monogramonline": {
+        "DROPSHIP": false,
+        "DROPSHIP_IMPORT": false
+    },
+    "Old Etsy": {
+        "DROPSHIP": false,
+        "DROPSHIP_IMPORT": false
+    },
+    "Natico - Wholesale": {
+        "DROPSHIP": false,
+        "DROPSHIP_IMPORT": false
+    },
+    "Houzz": {
+        "DROPSHIP": false,
+        "DROPSHIP_IMPORT": false
+    },
+    "ALLISON": {
+        "DROPSHIP": false,
+        "DROPSHIP_IMPORT": false
+    },
+    "Jamie's Clients ": {
+        "DROPSHIP": false,
+        "DROPSHIP_IMPORT": false
+    },
+    "Zulily Natico": {
+        "DROPSHIP": false,
+        "DROPSHIP_IMPORT": false
+    },
+    "Touch of Modern": {
+        "DROPSHIP": false,
+        "DROPSHIP_IMPORT": false
+    },
+    "Staples.ca": {
+        "DROPSHIP": false,
+        "DROPSHIP_IMPORT": false
+    },
+    "Shein": {
+        "DROPSHIP": false,
+        "DROPSHIP_IMPORT": false
+    }
+}

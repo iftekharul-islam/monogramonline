@@ -54,34 +54,40 @@
 				</tr>
 				
 				@foreach ($details as $row)
-					<tr>
-						<td>
-							<input type = "checkbox" name = "ship_ids[]" class = "checkbox"
-										 value = "{{ $row->id }}" />
-						</td>
-						<td>
-							<a href = "{{url(sprintf('/orders/details/%s', $row->order_number))}}"
-								 target = "_blank">{{ $row->order->short_order }}</a>
-						</td>
-						<td>
-							{{ $row->order->order_date }}
-						</td>
-						@if ($type == 'csv')
+					@if(isset($row->order))
+						<tr>
 							<td>
-								{{ $row->mail_class }}
+								<input type = "checkbox" name = "ship_ids[]" class = "checkbox"
+											 value = "{{ $row->id }}" />
 							</td>
 							<td>
-								{{ $row->shipping_id }}
+								@if(isset($row->order))
+									<a href = "{{url(sprintf('/orders/details/%s', $row->order_number))}}"
+									 target = "_blank">{{ $row->order->short_order }}</a>
+								@else
+									<span>Order is not available</span>
+								@endif
 							</td>
-						@elseif ($type == 'qb')
 							<td>
-								{{ $row->unique_order_id }}
+								{{ isset($row->order->order_date) ? $row->order->order_date : 'N/A' }}
 							</td>
-							<td>
-								{{ $row->transaction_datetime }}
-							</td>
-						@endif
-					</tr>
+							@if ($type == 'csv')
+								<td>
+									{{ $row->mail_class }}
+								</td>
+								<td>
+									{{ $row->shipping_id }}
+								</td>
+							@elseif ($type == 'qb')
+								<td>
+									{{ $row->unique_order_id }}
+								</td>
+								<td>
+									{{ $row->transaction_datetime }}
+								</td>
+							@endif
+						</tr>
+					@endif
 				@endforeach
 			</table>
 			

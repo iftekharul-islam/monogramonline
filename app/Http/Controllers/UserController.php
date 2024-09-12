@@ -10,6 +10,14 @@ use App\Http\Requests\UserUpdateRequest;
 
 class UserController extends Controller
 {
+
+    protected $vendors = [
+        'VENDOR-A' => 'Vendor-A',
+        'VENDOR-B' => 'Vendor-B',
+        'VENDOR-C' => 'Vendor-C',
+        'VENDOR-D' => 'Vendor-D',
+        'VENDOR-E' => 'Vendor-E'
+    ];
 	public function index ()
 	{
 		$count = 1;
@@ -33,8 +41,9 @@ class UserController extends Controller
 	
 	public function create ()
 	{
+        $vendors = $this->vendors;
 		
-		return view('users.create');
+		return view('users.create', compact('vendors'));
 	}
 	
 	public function store (UserRequest $request)
@@ -43,6 +52,7 @@ class UserController extends Controller
 		$user->username = trim($request->get('username'));
 		$user->email = $request->get('email');
 		$user->password = $request->get('password');
+		$user->vendor = $request->get('vendor');
 		$user->vendor_id = $request->get('vendor_id');
 		$user->zip_code = $request->get('zip_code');
 		$user->state = $request->get('state');
@@ -85,8 +95,10 @@ class UserController extends Controller
 		if ( !$user ) {
 			return view('errors.404');
 		}
+
+        $vendors = $this->vendors;
 		
-		return view('users.edit', compact('user'));
+		return view('users.edit', compact('user', 'vendors'));
 	}
 
 	public function update (UserUpdateRequest $request, $id)
@@ -106,6 +118,12 @@ class UserController extends Controller
 		$user->vendor_id = $request->get('vendor_id');
 		$user->zip_code = $request->get('zip_code');
 		$user->state = $request->get('state');
+
+        if ($request->has('vendor')) {
+            $user->vendor = $request->get('vendor');
+        } else {
+            $user->vendor = null;
+        }
 
 		if ($request->has('remote')) {
 			$user->remote = $request->get('remote');

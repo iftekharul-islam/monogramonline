@@ -185,7 +185,7 @@ return [
 		Maatwebsite\Excel\ExcelServiceProvider::class,
 		
 		/*Walmart Marketplace*/
-//		KeithBrink\Walmart\WalmartServiceProvider::class,
+		KeithBrink\Walmart\WalmartServiceProvider::class,
 	],
 
 	/*
@@ -251,7 +251,7 @@ return [
 		'UPSTradeability' => Ptondereau\LaravelUpsApi\Facades\UpsTradeability::class,
 		'AmazonMws' => Sonnenglas\AmazonMws\ServiceProvider::class,
 		'Excel' => Maatwebsite\Excel\Facades\Excel::class,
-//		'WalmartMkt' => KeithBrink\Walmart\WalmartFacade::class,
+		'WalmartMkt' => KeithBrink\Walmart\WalmartFacade::class,
 	],
 
 ];

@@ -35,9 +35,9 @@
 				<div class = "form-group col-xs-2">
 					{!! Form::text('batch_number', '', ['id'=>'batch_barcode', 'class' => 'form-control', 'placeholder' => 'Enter Batch']) !!}
 				</div>
-				<div class = "form-group col-xs-2">
-					{!! Form::password('user_barcode', ['id'=>'user_barcode', 'class' => 'form-control', 'autocomplete' => "new-password"]) !!}
-				</div>
+{{--				<div class = "form-group col-xs-2">--}}
+{{--					{!! Form::password('user_barcode', ['id'=>'user_barcode', 'class' => 'form-control', 'autocomplete' => "new-password"]) !!}--}}
+{{--				</div>--}}
 				<div class = "form-group col-xs-2">
 					{!! Form::submit('Open Batch', ['id'=>'search', 'style' => 'margin-top: 0px;', 'class' => 'btn btn-primary btn-sm']) !!}
 				</div>
@@ -63,9 +63,10 @@
 					@foreach($batches as $batch)
 					
 						<tr class="batch-row" batch-number="{{ $batch->batch_number }}"> 
-							<td> 
-								<a href = "{{ url(sprintf('batches/details/%s',$batch->batch_number)) }}"  
-										target="_blank">{{ $batch->batch_number }}</a> 
+							<td>
+								<a href="{{ route('openBatch', ['batch_number' => $batch->batch_number]) }}">{{ $batch->batch_number }}</a>
+{{--								<a href = "{{ url(sprintf('batches/details/%s',$batch->batch_number)) }}"  --}}
+{{--										target="_blank">{{ $batch->batch_number }}</a> --}}
 								@if ($batch->store) 
 									<br> 
 									{{ $batch->store->store_name }} 

@@ -12,12 +12,21 @@ use Illuminate\Support\Facades\Log;
 class Post extends CarrierInterface
 { 
 	protected $api_key = 'EZAKcf12d106bf264af5b027250ce8bcc958jg55lbapz7Z4MNQuc9Z9DA';
-	
-	protected $domestic_methods = array (
-		'FIRST_CLASS' => 'First',
-		'PRIORITY'    => 'Priority',
-		'EXPRESS'     => 'Express'
-	);
+
+    // testing key
+//    protected $api_key = 'EZTKcf12d106bf264af5b027250ce8bcc958mCaaviuwE2eK8n0SuQfA5g';
+
+    protected $domestic_methods = array (
+        'FIRST_CLASS'       => 'GroundAdvantage',
+        'PRIORITY'          => 'Priority',
+        'EXPRESS'           => 'Express',
+        'GROUNDADVANTAGE'   => 'GroundAdvantage'
+    );
+//	protected $domestic_methods = array (
+//		'FIRST_CLASS' => 'First',
+//		'PRIORITY'    => 'Priority',
+//		'EXPRESS'     => 'Express'
+//	);
 	
 	protected $intl_methods = array (
 		'FIRST_CLASS' => 'FirstClassPackageInternationalService',
@@ -46,8 +55,9 @@ class Post extends CarrierInterface
 		
 	}
 	
-	public function getLabel($store, $order, $unique_order_id, $method, $weight = 0, $params=[]) { 
-		
+	public function getLabel($store, $order, $unique_order_id, $method, $weight = 0, $params=[]) {
+
+        $method = !empty($method) ? $method : 'FIRST_CLASS';
 		if ($weight == 0) {
 			return 'ERROR: Weight Required';
 		} else {
@@ -60,9 +70,9 @@ class Post extends CarrierInterface
 		
 		$country = Shipper::getcountrycode($customer->ship_country);
 		
-		if ($weight > 13 && $method == 'FIRST_CLASS') {
-			$method = 'PRIORITY';
-		}
+//		if ($weight > 13 && $method == 'FIRST_CLASS') {
+//			$method = 'PRIORITY';
+//		}
 		
 		if ($country == 'US') {
 			
@@ -147,8 +157,9 @@ class Post extends CarrierInterface
             ), $params);
             
 		$shipment = Shipment::create($shipmentData);
-		    
-            	
+
+//        logger('low rate object', [$shipment->lowest_rate(array('USPS'), array($method))]);
+
 			$shipment->buy($shipment->lowest_rate(array('USPS'), array($method)));
 			
 			$label = $this->download_zpl($shipment->postage_label->label_zpl_url);

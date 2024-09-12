@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 
 use App\Http\Requests;
@@ -27,7 +28,7 @@ class QcController extends Controller
                         ->get()
                         ->pluck('id');
       
-        $totals = Batch::with('section', 'station')
+        $totals = Batch::with('section', 'station', 'route')
                     ->searchStatus('active')
                     ->whereIn('station_id', $qc_stations)
                     ->whereHas('store', function($q){
@@ -35,7 +36,7 @@ class QcController extends Controller
                     })
                     ->groupBy('station_id')
                     ->orderBy('section_id')
-                    ->selectRaw('section_id, station_id, COUNT(*) as count')
+                    ->selectRaw('section_id, station_id, batch_route_id, COUNT(*) as count')
                     ->get();
         
         
@@ -46,7 +47,9 @@ class QcController extends Controller
     {
       if (!$request->has('station_id')) {
         return redirect()->action('QcController@index')->withErrors('Station not set');
-      } 
+      }
+
+      session(['station_id' => $request->get('station_id')]);
       
       $station = Station::find($request->get('station_id'));
       
@@ -68,6 +71,7 @@ class QcController extends Controller
     
     public function scanIn (Request $request)
     {
+//        dd($request->all());
 //      if ($request->has('user_barcode')) {
 //
 //        $user = trim($request->get('user_barcode'));
@@ -250,6 +254,103 @@ class QcController extends Controller
 
     public function showOrder (Request $request)
     {
+        $ship_from = '';
+        $rates = [];
+        if($request->has('action')) {
+            $ounces = $request->get('ounces');
+            $pounds = $request->get('pounds') ? $request->get('pounds') * 16 : 0 ;
+            $weight = $pounds + $request->get('ounces');
+            if(!$weight){
+                return redirect()->back()->withErrors(['error' => 'Please enter accurate amount of weight']);
+            }
+
+            $shipment['shipment']['to_address'] = [
+                'name' => $request->get('name'),
+                'street1' => $request->get('street1'),
+                'city' => $request->get('city'),
+                'state' => $request->get('state'),
+                'zip' => $request->get('zip'),
+                'country' => $request->get('country'),
+                'phone' => $request->get('phone'),
+                'email' => $request->get('email')
+            ];
+
+        //            $shipment['shipment']['to_address'] = [
+        //                                'name' => 'Dr. Steve Brule',
+        //                                'street1' => '4109 BLACKTAIL CT',
+        //                                'city' => 'CASTLE ROCK',
+        //                                'state' => 'CO',
+        //                                'zip' => '80109-7972',
+        //                                'country' => 'US',
+        //                                'phone' => '8573875756',
+        //                                'email' => 'dr_steve_brule@gmail.com'
+        //                            ];
+            if($request->has('submit') && $request->get('submit') == 'Compare price from NY'){
+                $ship_from = 'NY';
+                $shipment['shipment']['from_address'] = [
+                    "company" => 'monogramonline',
+                    "street1" => '481 Johnson AVE',
+                    "street2" => 'A',
+                    "city"    => 'Bohemia',
+                    "state"   => 'NY',
+                    "zip"     => '11716',
+                    "country" => 'US',
+                    "phone"   => '8563203210'
+                ];
+            } else {
+                $ship_from = 'GA';
+                $shipment['shipment']['from_address'] = [
+                    "company" => 'monogramonline',
+                    "street1" => '1891 McFarland Parkway',
+                    "street2" => 'A',
+                    "city"    => 'Alpharetta',
+                    "state"   => 'GA',
+                    "zip"     => '30005',
+                    "country" => 'US',
+                    "phone"   => '631-867-2344'
+                ];
+                // deprecated address
+//                $shipment['shipment']['from_address'] = [
+//                    "company" => 'monogramonline',
+//                    "street1" => '4050 NE 9th ave',
+//                    "street2" => 'A',
+//                    "city"    => 'Oakland Park',
+//                    "state"   => 'FL',
+//                    "zip"     => '33334',
+//                    "country" => 'US',
+//                    "phone"   => '631-867-2344'
+//                ];
+            }
+
+            $shipment['shipment']['parcel'] = [
+                'length' => !empty($request->get('length')) ? $request->get('length') : '20',
+                'width' => !empty($request->get('width')) ? $request->get('width') : '10',
+                'height' => !empty($request->get('height')) ? $request->get('height') : '2',
+                'weight' => $weight //onz
+            ];
+
+            $data = $this->comparePrice($shipment);
+            if(count($data['rates'])) {
+                $rates = $data['rates'];
+                usort($rates, function ($a, $b) {
+                    $rateA = floatval($a["rate"]);
+                    $rateB = floatval($b["rate"]);
+
+                    return $rateA - $rateB;
+                });
+            } else if (count($data['messages'])){
+                $msg = '';
+                foreach($data['messages'] as $message) {
+                    $msg .= $message['message'] . '<br>' ;
+                }
+                return redirect()->back()->withErrors(['error' => $msg]);
+            } else {
+                return redirect()->back()->withErrors(['error' => 'Unknown error on compare price']);
+            }
+
+        }
+        $weightLBS = 0;
+        $remainingOZS = 0;
       $batch_number = $request->get('batch_number');
       $id = $request->get('id');
       $order_5p = $request->get('order_5p');
@@ -333,7 +434,58 @@ class QcController extends Controller
         $thumbs[$item->id] = Sure3d::getThumb($item);
       }
 
+        /**
+         * get the OZS(ounces) weight of the inventory where item_status = wap
+         * then convert the weight to pounds and ounces
+         */
+        $weightOZS = 0;
+        foreach ($items as $item) {
+                $total = 0;
+                $weight = isset($item->inventory_unit->first()->inventory->sku_weight) ? $item->inventory_unit->first()->inventory->sku_weight : 0;
+                if($weight > 0){
+                    $total = $weight * $item->item_quantity;
+                    $weightOZS += $total;
+                }
+        }
+        if($weightOZS > 0){
+
+            $ouncesInOnePound = 16;
+
+            // Calculate pounds and remaining ounces
+            if($weightOZS < $ouncesInOnePound) {
+                $weightLBS = 0;
+                $remainingOZS = $weightOZS;
+            } else {
+                $weightLBS = floor($weightOZS / $ouncesInOnePound); // Whole pounds
+                $remainingOZS = $weightOZS % $ouncesInOnePound; // Remaining ounces
+            }
+        }
+
+//        dd($weightLBS, $remainingOZS);
+
       return view('quality_control.order', compact('id', 'batch', 'batch_number', 'order', 'item_options', 'items',
-                                                    'dest', 'btn_title', 'btn_text', 'btn_class', 'thumbs', 'label'));
+                                                    'dest', 'btn_title', 'btn_text', 'btn_class', 'thumbs', 'label', 'ship_from', 'rates', 'weightLBS', 'remainingOZS'));
+    }
+
+    public function comparePrice($shipment)
+    {
+//        $EASYPOST_API_KEY = 'EZTKcf12d106bf264af5b027250ce8bcc958mjZpIf2maXevSVindGXYJw';
+        $EASYPOST_API_KEY = 'EZAKcf12d106bf264af5b027250ce8bcc958jg55lbapz7Z4MNQuc9Z9DA';
+        $client = new Client();
+
+        $response = $client->post('https://api.easypost.com/beta/rates', [
+            'auth' => [$EASYPOST_API_KEY, ''],
+            'headers' => ['Content-Type' => 'application/json'],
+            'json' => $shipment
+        ]);
+
+// Check the response status code and content
+        if ($response->getStatusCode() === 200) {
+            $responseData = json_decode($response->getBody()->getContents(), true);
+            return $responseData;
+            // Handle the response data as needed
+        } else {
+            // Handle the error response
+        }
     }
 }

@@ -29,7 +29,7 @@ class Batch extends Taskable
   		static::updating(function($model)
   		{
   			if (isset($model->station_id) && $model->getOriginal('station_id')) {
-  				
+
           if ($model->station_id != $model->getOriginal('station_id')) {
   						$station_log = new StationLog();
   						$station_log->batch_number = $model->batch_number;
@@ -259,6 +259,11 @@ class Batch extends Taskable
         if ($batch->status != 'empty') {
           $batch->status = 'empty';
           $batch->save();
+
+          $batch->delete();
+
+          logger('Batch :' . $batch->batch_number . ' made empty and then deleted');
+
         }
         return true;
       } elseif (!$batch->pending_items || count($batch->pending_items) == 0) {
@@ -781,56 +786,9 @@ class Batch extends Taskable
     }
     
     public static function export ($id, $force = 0, $format = 'CSV')
-    { 
-    
-//      $success = null;
-//
-////        #########################################
-//        set_time_limit(0);
-//        $batche = Batch::with('items','route.stations_list')
-//            ->where('batch_number', $id)
-//            ->get();
-//
-//        $graphicsController = new GraphicsController;
-//
-//            foreach($batche as  $batch){
-//                $file = $graphicsController->getArchiveGraphic($batch->batch_number);
-//                if($file != "ERROR not found in Archive"){
-//                    foreach($batch->items as  $items){
-//                        if(empty($items->tracking_number)){
-//                            ###### Save in Item Table ######
-//                            $items->tracking_number = NULL;
-//                            $items->item_status = 1;
-//                            $items->reached_shipping_station = 0;
-//                            $items->save();
-//
-//                            ###### Save in Batch Table ######
-//                            //  dd($batch->route->stations_list->first()->station_id);
-//                            $batch->status = 2;
-//                            $batch->section_id = 6;
-//                            $batch->station_id = 92;
-//                            $batch->prev_station_id = $batch->route->stations_list->first()->station_id;
-//                            $batch->export_count = 1;
-//                            $batch->csv_found = 0;
-//                            $batch->graphic_found = 1;
-//                            $batch->to_printer = 0;
-//                            $batch->to_printer_date = null;
-//                            $batch->archived = 1;
-//                            $batch->save();
-//                            Log::info('batch->batch_number8888: ' . $batch->batch_number);
-//                        }
-//                    }
-//                }else{
-//                    Log::info('batch Graphic->Not foundddddddddddd: ' . $batch->batch_number);
-//                }
-//
-//
-//            }
-//
-//        $msg ="Jewel Manul update";
-//
-//        return ['success' => 'Batch ' . $id . ' exported' . $msg];
-////        #######################################
+    {
+
+        logger('Batch Export started : ' . $id . ' - ' . $force . ' - ' . $format);
 
       if ($format == 'CSV') {
         $savepath = '/media/RDrive/5p_batch_csv_export';
@@ -865,25 +823,25 @@ class Batch extends Taskable
       }
 
       //SURE3D
-      if ($batch->items->first()->sure3d != null && $force == '0') {
-        try {
-          $s = new Sure3d;
-          $created = $s->exportBatch($batch);
-          
-          if ($created) {
-            $batch->export_count = $batch->export_count + 1;
-            $batch->export_date = date("Y-m-d H:i:s");
-            $batch->csv_found = '0';
-            $batch->graphic_found = '0';
-            $batch->to_printer = '0';
-            $batch->save();
-            return;
-          }
-        } catch (\Exception $e) {
-          Log::error('Batch Export : Sure3d Error Batch ' . $batch->batch_number . ' - ' . $e->getMessage());
-          Batch::note($batch->batch_number, $batch->station_id, '7', 'Sure3d Error: ' . $e->getMessage());
-        }
-      }
+//      if ($batch->items->first()->sure3d != null && $force == '0') {
+//        try {
+//          $s = new Sure3d;
+//          $created = $s->exportBatch($batch);
+//
+//          if ($created) {
+//            $batch->export_count = $batch->export_count + 1;
+//            $batch->export_date = date("Y-m-d H:i:s");
+//            $batch->csv_found = '0';
+//            $batch->graphic_found = '0';
+//            $batch->to_printer = '0';
+//            $batch->save();
+//            return;
+//          }
+//        } catch (\Exception $e) {
+//          Log::error('Batch Export : Sure3d Error Batch ' . $batch->batch_number . ' - ' . $e->getMessage());
+//          Batch::note($batch->batch_number, $batch->station_id, '7', 'Sure3d Error: ' . $e->getMessage());
+//        }
+//      }
       
       if ($force == '0') { 
         foreach ($batch->pending_items as $item) {
@@ -893,6 +851,7 @@ class Batch extends Taskable
           }
           
           $ex = explode('-', $batch->route->csv_extension);
+//          dd($batch->route, $item->parameter_option, $batch->route->export_dir, $item->parameter_option->design);
           
           if (is_array($ex) && array_intersect($ex, ['mono', 'np', 'squ']) == [] && 
                 !empty($item->parameter_option) && strtolower($batch->route->export_dir) != 'manual' &&
@@ -1054,17 +1013,18 @@ class Batch extends Taskable
       }
 
 
-      if ($format == 'XLS') {
-
-        Excel::create($file_name, function($excel) use ($rows) {
-
-            $excel->sheet('Export', function($sheet) use ($rows) {
-                $sheet->fromArray($rows, null, 'A1', false, false);
-            });
-
-        })->store('xls', $file_path);
-        
-      } elseif ($format == 'CSV') {
+//      if ($format == 'XLS') {
+//
+//        Excel::create($file_name, function($excel) use ($rows) {
+//
+//            $excel->sheet('Export', function($sheet) use ($rows) {
+//                $sheet->fromArray($rows, null, 'A1', false, false);
+//            });
+//
+//        })->store('xls', $file_path);
+//
+//      } elseif ($format == 'CSV') {
+      if ($format == 'CSV') {
         try {
           // $csv = Writer::createFromFileObject(new \SplFileObject($fully_specified_path, 'w+'), 'w');
           // dd($rows, $file_path, $file_name);
@@ -1098,7 +1058,8 @@ class Batch extends Taskable
 //dd("5 ", $export_dir, $id, $force, $format, $batch, $file_path, $file_name, $rows, $msg);
 
       Batch::note($batch->batch_number, $batch->station_id, '7', 'Exported ' . $format . ' ' . $msg);
-      
+
+      logger('Batch Export finished : ' . $id . ' - ' . $force . ' - ' . $format . ' - ' . $msg);
       return ['success' => 'Batch ' . $id . ' exported' . $msg];
     }
     

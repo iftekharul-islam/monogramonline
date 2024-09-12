@@ -41,10 +41,12 @@ class Batching
 	}
 	
 	public static function auto ($max_units = 0, $store_id = null, $export = 1, $specificOrder = "")
-	{	
+	{
+        logger('Batching function auto started');
+
 		$end = date("Y-m-d", strtotime("+1 day"));
 
-        $batch_routes = Batching::createAbleBatches(0, false, "2022-08-01", $end, null, null, $store_id, null, null, $max_units);
+        $batch_routes = Batching::createAbleBatches(0, false, "2023-10-10", $end, null, null, $store_id, null, null, $max_units);
 
 		$batches = array();
 		
@@ -56,6 +58,7 @@ class Batching
 				$batches[] = sprintf("%s|%s|%s|%s|%s", $count, $batch_route['id'], $item->item_table_id, $item->batch, $item->store_id);
 			}
 		}
+
 
 		Batching::createBatch($batches, '', 'active', $export);
 		
@@ -535,155 +538,280 @@ class Batching
 	
 	public static function createBatch ($batches, $prefix = '', $status = 'active', $export_batch = null)
 		{
-			
-			if (Batching::islocked()) {
-                Log::info('Existing AutoBatch '.count($batches).' executing');
-				return false;
-			}
-
-			Batching::lock();
-			
-			$acceptedGroups = [];
-			
-			$current_group = -1;
-			set_time_limit(0);
-
-			foreach ( $batches as $preferredBatch ) {
-				list($inGroup, $batch_route_id, $item_id, $batch_separate, $store_id) = explode("|", $preferredBatch);
-				if ( $inGroup != $current_group ) {
-					
-					$current_group = $inGroup;
-
-					$new_batch = new Batch;
-					
-					$new_batch->batch_route_id = $batch_route_id;
-					$batch = BatchRoute::with('stations_list')
-										 ->find($batch_route_id);
-					$new_batch->creation_date = date('Y-m-d H:i:s', strtotime('now'));
-					$new_batch->change_date = date('Y-m-d H:i:s', strtotime('now'));
-					
-					if ($batch_separate != 0) {
-						$new_batch->store_id = $store_id;
-					} 
-					
-					$new_batch->batch_number = sprintf("%s%s", $prefix, Batching::getLastBatchNumber() + 1);
-					$new_batch->station_id = $batch->stations_list[0]->station_id;
-					$new_batch->save();
-				}
-				#$batch_code = BatchRoute::find($batch_route_id)->batch_code;
-				#$proposedBatch = sprintf("%s~%s~%s", $today, $batch_code, $max_batch_id);
-				
-				$acceptedGroups[ $inGroup ][] = [
-					$item_id,
-					$new_batch->batch_number,
-				];
-			}
-
-			#return $acceptedGroups;
-
-			foreach ( $acceptedGroups as $groups ) {			
-				set_time_limit(0);
-				
-				foreach ( $groups as $itemGroup ) {
-					$item_id = $itemGroup[0];
-					$batch_number = $itemGroup[1];
-
-					$item = Item::find($item_id);
-					
-					if ($item->batch_number == 0) {
-						$item->batch_number = $batch_number;
-						// $item->item_taxable = auth()->user()->id;
-						//$item->item_order_status_2 = 2;
-						$item->save();
-
-						// Add note history by order id
-						$note = new Note();
-						$note->note_text = 'Batch ' . $batch_number . ' created on:' . $item->batch_creation_date . 
-																' for Item ' . $item->id . ' Child_SKU: ' . $item->child_sku;
-						$note->order_id = $item->order_id;
-						$note->order_5p = $item->order_5p;
-						if (auth()->user()) {
-							$note->user_id = auth()->user()->id;
-						} else {
-							$note->user_id = 87;
-						}
-						$note->save();
-
-						/* add order status to order table*/
-						// $order = Order::where('id', $item->order_5p)
-						// 					->first();
-						// if ( $order ) {
-						// 	$order->order_status = 4;
-						// 	$order->save();
-						// }
-					}
-				}
-				
-				$mindate = Item::join('orders', 'items.order_5p', '=', 'orders.id')
-										->where('items.batch_number', $batch_number)
-										->where('items.is_deleted', '0')
-										->selectRaw('MIN(orders.order_date) as min, count(items.id) as count')
-										->first();
-				
-				if ($mindate->count > 0) {
-					
-					$date_batch = Batch::where('batch_number', $batch_number)
-										->first();
-						
-					$date_batch->min_order_date = $mindate->min;
-					$date_batch->status = $status;
-					$date_batch->save();
-					
-					if ($export_batch != null) {
-						Batch::export($batch_number);
-					}
-					
-				} else {
-					
-					$new_batch->status = 'empty';
-					$new_batch->save();
-				}
-
-                $options = json_decode($item->item_option, true);
-
-                if(isset($options['Custom_EPS_download_link']) && is_object($item->order)) {
-                    $link = $options['Custom_EPS_download_link'];
-                    $ext = pathinfo($link, PATHINFO_EXTENSION);
-                    $file = $item->order->short_order . '-' . $item->id . '.' . $ext;
-
-                    Log::info("ATTEMPTING TO FIX SURE3D IMAGE " . $file);
-
-                    $data = null;
-
-                   try {
-                       $data = @file_get_contents($link);
-                       @file_put_contents('/media/RDrive/Sure3d/' . $file, $data);
-
-                   } catch (\Exception $exception) {
-
-                    }
-                    $graphic = new GraphicsController();
-
-                    $filename = $batch_number . '.' . $ext;
-                    $filename = $graphic->uniqueFilename('/media/RDrive/' . "archive/", $filename);
-
-
-                    try {
-                        @file_put_contents('/media/RDrive/' . "archive/" . $filename, $data);
-                        @file_get_contents("http://order.monogramonline.com/lazy/upload-download/zakeke/" . $item->id . "?batch_number=" . $batch_number . "&item_id=" . $item->id . "&short_order=" . $item->order->short_order . "&fetch_link_from_zakeke_cli=true&item_index=0");
-
-                    } catch (\Exception $exception) {
-
-                    }
-                } else {
-                    Log::info("ATTEMPTING TO FIX SURE3D IMAGE ERROR, LINK DOES NOT EXIST WITHIN IT");
+			try {
+                if (Batching::islocked()) {
+                    Log::info('Existing AutoBatch '.count($batches).' executing');
+                    return false;
                 }
 
+                Batching::lock();
+
+                $acceptedGroups = [];
+
+                $current_group = -1;
+                set_time_limit(0);
+
+                foreach ( $batches as $preferredBatch ) {
+                    list($inGroup, $batch_route_id, $item_id, $batch_separate, $store_id) = explode("|", $preferredBatch);
+                    if ( $inGroup != $current_group ) {
+
+                        $current_group = $inGroup;
+
+                        $new_batch = new Batch;
+
+                        $new_batch->batch_route_id = $batch_route_id;
+                        $batch = BatchRoute::with('stations_list')
+                            ->find($batch_route_id);
+                        $new_batch->creation_date = date('Y-m-d H:i:s', strtotime('now'));
+                        $new_batch->change_date = date('Y-m-d H:i:s', strtotime('now'));
+
+                        if ($batch_separate != 0) {
+                            $new_batch->store_id = $store_id;
+                        }
+
+                        $new_batch->batch_number = sprintf("%s%s", $prefix, Batching::getLastBatchNumber() + 1);
+                        $new_batch->station_id = $batch->stations_list[0]->station_id;
+                        $new_batch->save();
+                    }
+                    #$batch_code = BatchRoute::find($batch_route_id)->batch_code;
+                    #$proposedBatch = sprintf("%s~%s~%s", $today, $batch_code, $max_batch_id);
+
+                    $acceptedGroups[ $inGroup ][] = [
+                        $item_id,
+                        $new_batch->batch_number,
+                    ];
+
+                    logger('item : '. $item_id . ' batch : ' . $new_batch->batch_number );
+                }
+
+                #return $acceptedGroups;
+
+                foreach ( $acceptedGroups as $groups ) {
+                    set_time_limit(0);
+
+                    foreach ( $groups as $itemGroup ) {
+                        $item_id = $itemGroup[0];
+                        $batch_number = $itemGroup[1];
+
+                        $item = Item::find($item_id);
+
+                        if ($item->batch_number == 0) {
+                            $item->batch_number = $batch_number;
+                            // $item->item_taxable = auth()->user()->id;
+                            //$item->item_order_status_2 = 2;
+                            $item->save();
+
+                            // Add note history by order id
+                            $note = new Note();
+                            $note->note_text = 'Batch ' . $batch_number . ' created on:' . $item->batch_creation_date .
+                                ' for Item ' . $item->id . ' Child_SKU: ' . $item->child_sku;
+                            $note->order_id = $item->order_id;
+                            $note->order_5p = $item->order_5p;
+                            if (auth()->user()) {
+                                $note->user_id = auth()->user()->id;
+                            } else {
+                                $note->user_id = 87;
+                            }
+                            $note->save();
+
+                            /* add order status to order table*/
+                            // $order = Order::where('id', $item->order_5p)
+                            // 					->first();
+                            // if ( $order ) {
+                            // 	$order->order_status = 4;
+                            // 	$order->save();
+                            // }
+                        }
+                    }
+
+                    $mindate = Item::join('orders', 'items.order_5p', '=', 'orders.id')
+                        ->where('items.batch_number', $batch_number)
+                        ->where('items.is_deleted', '0')
+                        ->selectRaw('MIN(orders.order_date) as min, count(items.id) as count')
+                        ->first();
+
+                    $item = Item::with('parameter_option')->where('batch_number', $batch_number)
+                        ->where('is_deleted', '0')
+                        ->first();
+
+                    if ($mindate->count > 0) {
+
+                        $date_batch = Batch::where('batch_number', $batch_number)
+                            ->first();
+
+                        $date_batch->min_order_date = $mindate->min;
+                        $date_batch->status = $status;
+                        $date_batch->save();
+
+                        // TODO::old code deprecated
+//                        if ($export_batch != null) {
+//                            Batch::export($batch_number);
+//                        }
+//
+//                        if (!empty($item) && !empty($item->parameter_option) && !$item->parameter_option->sure3d){
+//                            logger('item id:' . $item->id . ' and batch : '. $batch_number .' is not empty or item->parameter_option->sure3d is false');
+//                            Batch::export($batch_number);
+//                        } else {
+//                            logger('item id:' . $item->id . ' and batch : '. $batch_number .' is empty or item->parameter_option->sure3d is true');
+//                        }
 
 
+                    } else {
+
+                        $new_batch->status = 'empty';
+                        $new_batch->save();
+                    }
+
+                    $options = json_decode($item->item_option, true);
+
+                    if(!empty($item) && !empty($item->parameter_option) && $item->parameter_option->sure3d && isset($options['Custom_EPS_download_link']) && is_object($item->order)) {
+                        logger('item id:' . $item->id . ' and batch : '. $batch_number .' is empty or item->parameter_option->sure3d is true');
+                        logger('will get the file on archive folder and rename it with batch number');
+                        // Get the filename from the URL using pathinfo
+                        $file_url = $options['Custom_EPS_download_link'];
+                        $file_info = pathinfo($file_url);
+                        $filename = $file_info['filename'];
+                        $extension = $file_info['extension'];
+                        $fileWithExt = $filename. '.' . $extension;
+
+                        // Check if the filename contains $batch_number
+                        if (strpos($filename, $batch_number) === false) {
+                            // Rename the file
+                            $new_filename = $batch_number . '.' . $extension;
+                            logger('new file constructed : ' . $new_filename);
+
+                            $old_file_dir = '/media/RDrive/archive/' . $filename . '.' . $extension;
+                            $new_file_dir = '/media/RDrive/archive/' . $new_filename;
+                            if($extension == 'pdf'){
+                                logger('File is pdf :'. $file_url);
+                            }
+                            // Use shell_exec to copy and rename the file
+                            $command = "cp \"$old_file_dir\" \"$new_file_dir\"";
+                            shell_exec($command);
+
+                            // Remove the old file
+                            $remove_command = "rm \"$old_file_dir\"";
+                            shell_exec($remove_command);
+
+                            If (file_exists($old_file_dir)) {
+                                unlink($old_file_dir);
+                                Log::info('File removed successfully with name :'. $old_file_dir);
+
+                            }
+                            // Construct the new URL
+                            $new_file_url = 'https://order.monogramonline.com/media/archive/' . $new_filename;
+
+
+                            $options['Custom_EPS_download_link'] = $new_file_url;
+
+                            $item->item_option = json_encode($options);
+                            $item->batch_number = $batch_number;
+                            $item->save();
+
+                            logger('batched item : '. $item->id);
+
+                            Log::info("File renamed and replaced successfully with name :". $new_file_url);
+                            Log::info("File removed successfully with name :". $file_url);
+
+                            $batch = Batch::where('batch_number', $batch_number)
+                                ->first();
+                            //TODO :: need to implement
+//                            if(isset($batch->section) && $batch->section == 'Sublimation' && $batch_number){
+                                logger('section is sublimation, section is :'. $batch->section->section_name. 'batch number is :'. $batch->batch_number);
+                                logger('start updating the batch :'. $batch->id);
+                                logger('For batch item id :'. $item->id);
+
+                                $batch->status = 2;
+                                $batch->section_id = 6;
+                                $batch->prev_station_id = $new_batch->station_id;
+                                $nextStationId = 92;
+
+
+                                // move to next station
+                                $index = -1;
+                                foreach ($batch->route->stations_list as $key => $station) {
+                                    if($station->station_id === 264) {
+                                        $index = $key;
+                                        break;
+                                    }
+                                }
+                                if($index !== -1 && isset($batch->route->stations_list[$index])) {
+                                    // Get the next station's ID
+                                    $nextStationId = $batch->route->stations_list[$index]->station_id;
+                                    logger("Next Station ID: $nextStationId");
+                                } else {
+                                    logger("Station with ID $batch->station_id not found or no next station and set default :(");
+                                }
+
+                                $batch->station_id = $nextStationId;
+                                $batch->export_count = 1;
+                                $batch->csv_found = 0;
+                                $batch->graphic_found = 1;
+                                $batch->to_printer = 0;
+                                $batch->to_printer_date = null;
+                                $batch->archived = 1;
+                                $batch->save();
+
+                                logger('batch updated successfully :'. $batch->id);
+
+                                Batch::note($batch->batch_number, $batch->station_id, '111',
+                                    'Graphic Uploaded to Main');
+//                            }
+
+
+                        } else {
+                            Log::error("File already has the correct batch number." . $file_url);
+                        }
+
+//                    $link = $options['Custom_EPS_download_link'];
+//                    $ext = pathinfo($link, PATHINFO_EXTENSION);
+//                    $file = $item->order->short_order . '-' . $item->id . '.' . $ext;
+//
+//                    Log::info("ATTEMPTING TO FIX SURE3D IMAGE " . $file);
+//
+//                    $data = null;
+
+//                   try {
+//                       $data = @file_get_contents($link);
+//                       @file_put_contents('/media/RDrive/Sure3d/' . $file, $data);
+//
+//                   } catch (\Exception $exception) {
+//
+//                    }
+//                    $graphic = new GraphicsController();
+//
+//                    $filename = $batch_number . '.' . $ext;
+//                    $filename = $graphic->uniqueFilename('/media/RDrive/' . "archive/", $filename);
+//
+//
+//                    try {
+//                        @file_put_contents('/media/RDrive/' . "archive/" . $filename, $data);
+//                        @file_get_contents("http://order.monogramonline.com/lazy/upload-download/zakeke/" . $item->id . "?batch_number=" . $batch_number . "&item_id=" . $item->id . "&short_order=" . $item->order->short_order . "&fetch_link_from_zakeke_cli=true&item_index=0");
+//
+//                    } catch (\Exception $exception) {
+//
+//                    }
+                    } else {
+//                    Log::info("ATTEMPTING TO FIX SURE3D IMAGE ERROR, LINK DOES NOT EXIST WITHIN IT");
+                        Log::info("Custom_EPS_download_link is not available");
+                        logger('item id:' . $item->id . ' and batch : '. $batch_number .' is not empty or item->parameter_option->sure3d is false');
+                        Batch::export($batch_number);
+                    }
+
+                }
+
+                Batching::unlock();
+                logger('Batching::unlocked and finished');
+
+            } catch(\Exception $e) {
+                logger('auto batching issue is occurred');
+                logger([
+                    'message' => $e->getMessage(),
+                    'line' => $e->getLine(),
+                    'file' => $e->getFile(),
+                ]);
+                return $e->getMessage();
             }
-			
-			Batching::unlock();
 			
 			return true;
 		}

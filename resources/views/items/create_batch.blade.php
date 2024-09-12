@@ -102,7 +102,7 @@
 				</div>
 				<div class = "form-group col-xs-1">
 					@if (!$locked)
-							{!! Form::submit('Create batch', ['class' => 'btn btn-success create_batch']) !!}
+							{!! Form::submit('Create batch', ['class' => 'btn btn-success']) !!}
 					@else
 						{!! Form::button('Auto Batch Running', ['class' => 'btn btn-warning']) !!}
 					@endif
@@ -186,7 +186,7 @@
 				</div>
 				<div class = "form-group col-xs-1">
 					@if (!$locked)
-							{!! Form::submit('Create batch', ['class' => 'btn btn-success create_batch']) !!}
+							{!! Form::submit('Create batch', ['class' => 'btn btn-success']) !!}
 					@else
 						{!! Form::button('Auto Batch Running', ['class' => 'btn btn-warning']) !!}
 					@endif

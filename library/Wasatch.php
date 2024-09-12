@@ -1,6 +1,7 @@
 <?php
 
 namespace Monogram;
+
 use App\Batch;
 use Exception;
 use Illuminate\Support\Facades\Log;
@@ -38,7 +39,7 @@ class Wasatch
         'EPSO' => null];
 
     protected $prefix = '//10.10.0.14/public/graphics';
-    protected $webPrefix = 'http://order.monogramonline.com/media';
+    protected $webPrefix = 'https://order.monogramonline.com/media';
     protected $old_prefix = '//10.10.0.9/Graphics';
 
     protected $ip = 'http://10.10.0.254/';
@@ -161,7 +162,7 @@ class Wasatch
 
             if ($input === false) {
 //                Log::error($this->ip . ' Wasatch getQueues: Cannot retrieve Queue Info');
-    ////            return 'Error: Cannot retrieve Wasatch queues';
+                ////            return 'Error: Cannot retrieve Wasatch queues';
                 return "NOTE: Wasatch queues has been disabled, this will NOT affect any printing behavior.";
             }
 
@@ -283,9 +284,9 @@ class Wasatch
         return '1';
     }
 
-    public function printJob($files, $barcode, $hotfolder, $imgconf, $width = null, $quantity = 1)
+    public function printJob($files, $barcode, $hotfolder, $imgconf, $width = null, $quantity = 1, $summeryMsg)
     {
-//        dd($files, $barcode, $hotfolder, $imgconf, $width);
+//        dd($files, $barcode, $hotfolder, $imgconf, $width, $summeryMsg);
 //        ##################
 //        // Load route info by Batch ($barcode);
 //        $batchRoutes = Batch::getBatchWitRoute($barcode);
@@ -322,100 +323,100 @@ class Wasatch
 
         $xml = '<?xml version="1.0" encoding="utf-8"?>';
         $xml .= '<WASATCH ACTION="JOB">';
-        $xml .= '<LAYOUT NOTES="' . $barcode . ' Layout">';
+//        $xml .= '<LAYOUT NOTES="' . $barcode . ' '.$summeryMsg.'">';
+        $xml .= '<LAYOUT NOTES="' . $barcode . '_'.$summeryMsg.'_: '. $quantity.'">';
         $xml .= '<Copies>' . $quantity . '</Copies>';
 
-        $y = 0;
+        $y = 2;
 
 
         foreach ($files as $name => $info) {
-
 //            dd($files, $barcode, $hotfolder, $imgconf, $width, ((((int) $info['frameSize']) - ((int) $info['height'])) / 2));
-
-
-            if(!isset($info['type'])) {
+            if (!isset($info['type'])) {
                 $info['type'] = ".pdf";
             }
-            if (!empty($info['frameSize'] && ($info['type']) != ".pdf" ) && (((((int) $info['frameSize']) - ((int) $info['height'])) / 2) > 0) && (((int) $info['frameSize']) > ((int) $info['height']))){
-//                $y += 1.25;
-                $y += ((((int) $info['frameSize']) - ((int) $info['height'])) / 2);
+
+            if (strpos($name, 'summaries') !== false) {
+                $info['frameSize'] = 0;
+            } else if (empty($info['frameSize'])) {
+//                $this->jdbg(__LINE__, $info);
+                $info['frameSize'] = (int)$info['height'] + 1;
             }
 
+//            $this->jdbg(__LINE__, ((((int)$info['frameSize']) - ((int)$info['height'])) / 2) > 0);
+//            $this->jdbg(__LINE__, (((int)$info['frameSize']) > ((int)$info['height'])));
+//            $this->jdbg(__LINE__, (int)$info['frameSize']);
+//            $this->jdbg(__LINE__, (int)$info['height']);
+//            $this->jdbg(__LINE__, (((int)$info['frameSize']) - ((int)$info['height'])));
 
-            $xml .= '<PAGE XPOSITION="0.0" YPOSITION="' . number_format($y, 1) . '">';
+//            if (!empty($info['frameSize'] && ($info['type']) != ".pdf") && (((((int)$info['frameSize']) - ((int)$info['height'])) / 2) > 0) && (((int)$info['frameSize']) > ((int)$info['height']))) {
+////                $y += 2.75;
+//                $yy = ((((int)$info['frameSize']) - ((int)$info['height'])) / 2);
+//                $xml .= '<PAGE XPOSITION="0.0" YPOSITION="2.0">';
+//                $y += (int)$info['frameSize'];
+////                $this->jdbg(__LINE__, $info);
+//                dd($info);
+//            } else {
+//                $xml .= '<PAGE XPOSITION="0.0" YPOSITION="0.0">';
+//                $y += (int)$info['frameSize'];
+////                $this->jdbg(__LINE__, $info);
+//            }
 
-
-
+            if (strpos($name, 'summaries') !== false) {
+                $xml .= '<PAGE XPOSITION="0.0" YPOSITION="0.0">';
+            }else{
+                $xml .= '<PAGE XPOSITION="0.0" YPOSITION="4.0">';
+            }
 
             if ($info['source'] == 'R') {
                 $xml .= '<FileName>' . $this->webPrefix . $name . '</FileName>';
             } else if ($info['source'] == 'P') {
                 $xml .= '<FileName>' . $this->old_prefix . $name . '</FileName>';
             }
+
             if ($this->conf[$imgconf] != null) {
-//        $xml .= '<IMGCONF>' . $this->conf[$imgconf] . '</IMGCONF>';
+                # $xml .= '<IMGCONF>' . $this->conf[$imgconf] . '</IMGCONF>';
             }
+
             $xml .= '<Copies>0</Copies>';
-//            $xml .= '<ANNOTATE><BARCODE>' . $barcode . '</BARCODE></ANNOTATE>';
-            if(!isset($info['scale'])) {
+            #$xml .= '<ANNOTATE><BARCODE>' . $barcode . '</BARCODE></ANNOTATE>';
+            if (!isset($info['scale'])) {
                 $xml .= '<Scale>' . 100 . '</Scale>';
             } else {
                 $xml .= '<Scale>' . $info['scale'] . '</Scale>';
             }
-            // if (isset($info['mirror']) && $info['mirror'] == 1) {
-            //   $xml .= '<Mirror>1</Mirror>';
-            // } else {
-            //   $xml .= '<Mirror>0</Mirror>';
-            // }
 
-            if(isset($info['mirror']) ){
+            if (isset($info['orientation'])) {
+                if (!empty($info['orientation']) && $info['orientation'] == 1) {
+                    $xml .= '<Rotate>90</Rotate>';
+                }
+            }
+
+            if (isset($info['mirror'])) {
                 if (empty($info['mirror'])) {
                     $xml .= '<Mirror>0</Mirror>';
                 } else {
                     $xml .= '<Mirror>1</Mirror>';
                 }
             }
-
             $xml .= '<DELETEAFTERRIP /><DELETEAFTERPRINT />';
             $xml .= '</PAGE>';
-
-            if(!isset($info['height'] )) {
+            if (!isset($info['height'])) {
                 $info['height'] = $info['frameSize'];
             }
-
-            if ((!empty($info['frameSize']) && (((int) $info['frameSize']) > ((int) $info['height']))) ){
-                $y += $info['frameSize'];
-            }else{
-            //    $y += $info['height'] + 1.75;
-                /*
-                 * This fixes the height issue
-                 */
-                if(isset($info['height'] )) {
-                    $y += $info['height'] ?? 0 + 1.75;
-                } else {
-                    $y += $info['frameSize'] + 1.75;
-                }
-            }
-
         }
         $xml .= '<DELETEAFTERPRINT/>';
         $xml .= '</LAYOUT></WASATCH>';
-
-//        $this->jdbg("xml", $xml);
-//dd($files, $xml);
-
-        // $tmpfile = fopen('/media/RDrive/temp/' .  $barcode  . '.xml', "w");
-        // fwrite($tmpfile, $xml);
-        // fclose($tmpfile);
-//dd($this->staging[$hotfolder] . $barcode . '.xml', $hotfolder, $this->staging);
-        $newfile = fopen(storage_path() . $this->staging[$hotfolder] . $barcode . '.xml', "w");
+//dd($xml);
+//        $this->jdbg("XML", $xml);
+        $newfile = fopen($this->hotfolders[$hotfolder] . $barcode . '.xml', "w");
         fwrite($newfile, $xml);
         fclose($newfile);
 
         if (auth()->user()) {
-         //   Log::info("printJob = ".auth()->user()->username . '-' . $barcode . '-' . $hotfolder);
+            //   Log::info("printJob = ".auth()->user()->username . '-' . $barcode . '-' . $hotfolder);
         } else {
-         //   Log::info('printJob = AutoPrint-' . $barcode . '-' . $hotfolder);
+            //   Log::info('printJob = AutoPrint-' . $barcode . '-' . $hotfolder);
         }
 
         return;
@@ -460,9 +461,9 @@ class Wasatch
         $logStr = "5p -- {$label}: ";
         switch (gettype($obj)) {
             case 'boolean':
-                if($obj){
+                if ($obj) {
                     $logStr .= "(bool) -> TRUE";
-                }else{
+                } else {
                     $logStr .= "(bool) -> FALSE";
                 }
                 break;

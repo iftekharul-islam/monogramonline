@@ -4,20 +4,20 @@
 	<meta charset = "UTF-8">
 	<title>{{ $order->short_order }} details</title>
 	<meta name = "viewport" content = "width=device-width, initial-scale=1">
-	
+
 	<link type = "text/css" rel = "stylesheet" href = "/assets/css/bootstrap.min.css">
 	<link type = "text/css" rel = "stylesheet" href = "/assets/css/nprogress.css">
 	<link type = "text/css" rel = "stylesheet" href="/assets/css/pikaday.min.css">
-	
+
 	<script type = "text/javascript" src = "/assets/js/jquery.min.js"></script>
 	<script type = "text/javascript" src = "/assets/js/bootstrap.min.js"></script>
 	<script type = "text/javascript" src = "/assets/js/moment.min.js"></script>
 	<script type = "text/javascript" src = "/assets/js/pikaday.min.js"></script>
 	<script type = "text/javascript" src = "/assets/js/nprogress.js"></script>
 	<script type = "text/javascript" src = "/assets/js/jquery.autocomplete.min.js"></script>
-				
+
 	<style type = "text/css">
-		
+
 		table#items-table th {
 			min-width: 100px;
 		}
@@ -26,13 +26,13 @@
 			min-width: 100px;
 			text-align: center;
 		}
-		
-		table { 
-			font-family: Verdana, Arial, Helvetica, sans-serif; 
-			font-size: 10px; 
-			color: #000000; 
-		} 
-		
+
+		table {
+			font-family: Verdana, Arial, Helvetica, sans-serif;
+			font-size: 10px;
+			color: #000000;
+		}
+
 		.autocomplete-suggestions { -webkit-box-sizing: border-box; -moz-box-sizing: border-box; box-sizing: border-box; border: 1px solid #999; background: #FFF; cursor: default; overflow: auto; -webkit-box-shadow: 1px 4px 3px rgba(50, 50, 50, 0.64); -moz-box-shadow: 1px 4px 3px rgba(50, 50, 50, 0.64); box-shadow: 1px 4px 3px rgba(50, 50, 50, 0.64); }
 		.autocomplete-suggestion { padding: 2px 5px; white-space: nowrap; overflow: hidden; }
 		.autocomplete-no-suggestion { padding: 2px 5px;}
@@ -68,7 +68,7 @@
 					<br>
 					@if ($order->purchase_order != NULL)
 						<strong>PO: {{ $order->purchase_order }}</strong>
-					@endif 
+					@endif
 				</div>
 				<div class="col-xs-3">
 					@if ($order->store && auth()->user()->accesses->where('page', 'orders_admin')->all())
@@ -88,9 +88,9 @@
 					<strong>Status:</strong>
 				</div>
 				<div class="col-xs-3">
-					@if (count($status_selector) > 1 && 
+					@if (count($status_selector) > 1 &&
 								count(array_intersect(auth()->user()->accesses->pluck('page')->toArray(), ['supervisor','ship_order','customer_service'])) > 0)
-							{!! Form::select('status_select', $status_selector, $statuses[$order->order_status], 
+							{!! Form::select('status_select', $status_selector, $statuses[$order->order_status],
 												['id'=>'status_selector', 'onchange' => "change_status();", 'class' => 'form-control']) !!}
 					@else
 						{{ $statuses[$order->order_status] }}
@@ -104,7 +104,7 @@
 					<hr>
 			</div>
 		</div>
-		
+
 		<div class="col-xs-12">
 			<div class="row">
 
@@ -121,28 +121,28 @@
 					@else
 						@if (isset($order->carrier))
 							{{ $order->carrier }} {{ $order->method }}
-						@else 
+						@else
 							DEFAULT SHIPPING
 						@endif
 					@endif
 				</div>
 				{!! Form::close() !!}
-				
+
 				{!! Form::open(['url' => url('orders/update_shipdate'), 'method' => 'post']) !!}
 				{!! Form::hidden('id', $order->id) !!}
 				<div class="col-xs-2" style="text-align:right;">
 					<strong>Ship By Date:</strong>
 				</div>
 				<div class="col-xs-3">
-					<div class = 'input-group date' style = "padding-left:24px">  
-					 {!! Form::text('ship_date', $order->ship_date, ['id'=>'ship_date', 'class' => 'form-control', 'autocomplete' => 'off', 'onBlur' => 'this.form.submit();']) !!} 
-						 <span class = "input-group-addon"> 
-													 <span class = "glyphicon glyphicon-calendar"></span> 
-											 </span> 
-					 </div> 
+					<div class = 'input-group date' style = "padding-left:24px">
+					 {!! Form::text('ship_date', $order->ship_date, ['id'=>'ship_date', 'class' => 'form-control', 'autocomplete' => 'off', 'onBlur' => 'this.form.submit();']) !!}
+						 <span class = "input-group-addon">
+													 <span class = "glyphicon glyphicon-calendar"></span>
+											 </span>
+					 </div>
 				</div>
 				{!! Form::close() !!}
-				
+
 				<div class="col-xs-3" style="text-align:right;">
 					@if ($order->order_status != 12 && $order->order_status != 7)
 						@if ($order->carrier == 'MN' && $order->order_status != 6 && $order->order_status != 8)
@@ -151,14 +151,14 @@
 							<a href="/ship_order/ship_from_order?order_id={{ $order->id }}&reship=0" class="btn btn-success">Ship</a>
 						@elseif ($order->order_status == 10)
 							<a href="/ship_order/ship_from_order?order_id={{ $order->id }}&reship=1" class="btn btn-success">Re-Ship Returned Package</a>
-						@endif 
+						@endif
 					@endif
 				</div>
 			</div>
 			<div class="row">
 					<hr>
 			</div>
-			
+
 		{!! Form::open(['url' => url('orders/'. $order->id), 'method' => 'put', 'name' => 'order']) !!}
 		{!! Form::hidden('customer_id', $order->customer_id) !!}
 		<table>
@@ -169,7 +169,7 @@
 					<button type = "submit" class = "btn btn-primary">Update Order</button>
 
 					@if($batched == 0 or $batched <= 2)
-					<button class="btn btn-warning" type="button" onclick="window.location.href = 'https://order.monogramonline.com/custom/batch?order={{$order->id}}'">Batch</button>
+					<a class="btn btn-warning" href="{{ url('custom/batch?order='.$order->id) }}">Batch</a>
 						@endif
 				</td>
 			</tr>
@@ -250,7 +250,7 @@
 			</tr>
 		</table>
 		<!--{!! Form::text('ship_email', $order->customer->ship_email, ['id' => 'ship_email']) !!}-->
-		
+
 		<table>
 			<tr>
 				<td>
@@ -270,7 +270,7 @@
 					{!! Form::text('bill_email', $order->customer->bill_email, ['id' => 'bill_email','style'=>'width: 300px']) !!}
 					@if($order->customer->bill_email)
 						<button type = "button" class = "btn btn-link" data-toggle = "modal"
-						        data-target = "#large-email-modal-lg" 
+						        data-target = "#large-email-modal-lg"
 										onclick="open_email({{ $order->id }},'{{ $order->short_order }}','{{ $order->customer->bill_email }}', 0)">
 							<i class = "glyphicon glyphicon-envelope"></i>
 						</button>
@@ -310,21 +310,29 @@
 			</thead>
 			<tbody>
 			@setvar($sub_total = 0)
-			@foreach($order->items as $item)
+			@foreach($order->items ?? [] as $item)
 				@setvar( $sub_total += ($item->item_quantity * $item->item_unit_price))
 				<tr class="item-line">
 					{!! Form::hidden("item_id[]", $item->id) !!}
 					{!! Form::hidden("item_sku[]", $item->item_code) !!}
+                    <td width=50>
+                        <img src = "{{$item->product->product_thumb ?? '/assets/images/no_image.jpg'}}" width='150' height="150"/>
+						<br>
+						<a style = 'color:gray' class="syn-item-thm" href="{{ url('update-shopify-thumb/'. $order->short_order .'/'. $item->item_id) }}">Update Thumb</a>
+                    </td>
+
 					<td width=100>
 						<a href = "{{ url($item->item_url ? $item->item_url : '#') }}" target = "_blank">
 
 							<img src = "{{$item->item_thumb}}" width='150' height="150"/>
 						</a>
 						<br>
-						@if ($order->store && $order->store->change_items == '1' && 
+						@if ($order->store && $order->store->change_items == '1' &&
 									$item->item_status != 'cancelled' && $item->item_status != 'shipped')
 							<a style = 'color:gray' class="delete-item"
 								href = "{{ url(sprintf("/items/delete_item/%s/%d", $order->id, $item->id)) }}">Cancel</a>
+                            <a style = 'color:gray' class="syn-item-thm"
+                               href = "{{ url(sprintf("/items/syn_item_thm/%s/%d", $order->id, $item->id)) }}"> / Update Thumb</a>
 						@elseif ($order->store && $order->store->change_items == '1' && $item->item_status == 'cancelled')
 							<a style = 'color:gray' href = "{{ url(sprintf("/items/restore_item/%s/%d", $order->id, $item->id)) }}">Restore</a>
 						@endif
@@ -336,11 +344,11 @@
 							<a href = "{{ url($item->item_url ? $item->item_url : '#') }}" target = "_blank">{{$item->item_description}}</a>
 							{!! Form::hidden("item_description[]", $item->item_description) !!}
 						@endif
-						
+
 						<br>
 						Item ID: {{ $item->id }}
 						<br><br>
-						
+
 						@if (count($item->allChildSkus) > 0 && (empty($item->parameter_option) || $item->parameter_option->batch_route_id == 115))
 							@setvar($child_skus = array())
 							@setvar($child_skus[$item->child_sku] = $item->child_sku)
@@ -381,10 +389,10 @@
 										View batch:
 										<a href = "{{ url(sprintf("/batches/details/%s", $item->batch_number)) }}"
 										   target = "_blank">{{ $item->batch_number }}</a>
-											 
+
 										@if(isset($item->batch->station))
 											<br>
-											<span>{{ $item->batch->station->station_name }} {{ $item->batch->station->station_description }} </span> 
+											<span>{{ $item->batch->station->station_name }} {{ $item->batch->station->station_description }} </span>
 												<br>
 												{{ $item->batch->change_date }}
 										@endif
@@ -396,7 +404,7 @@
 								@endif
 						@elseif ($item->item_status == 'wap')
 							@if ($item->wap_item)
-								WAP Bin 
+								WAP Bin
 								<a href = "{{ url(sprintf("/wap/details?bin=%s", $item->wap_item->bin_id)) }}"
 									 target = "_blank">{{ $item->wap_item->bin->name }}</a>
 								<br>
@@ -408,9 +416,9 @@
 							@endif
 						@elseif ($item->item_status == 'rejected' && $item->rejection)
 							@if ($item->rejection->graphic_status != 'Redo Item')
-								Rejected 
+								Rejected
 							@else
-								Redo 
+								Redo
 							@endif
 							<a href = "{{ url(sprintf("/batches/details/%s", $item->batch_number)) }}"
 								 target = "_blank">{{ $item->batch_number }}</a>
@@ -423,13 +431,13 @@
 							<br>
 							{{ $item->rejection->created_at }}
 						@elseif ($item->item_status == 'rejected' && !$item->rejection)
-							REJECTED BUT NO REJECTION RECORD	
+							REJECTED BUT NO REJECTION RECORD
 						@elseif ($item->item_status == 'back order')
-							Back Order 
+							Back Order
 							@if (!$item->batch)
 								Unbatched
 							@endif
-							
+
 							@if($item->inventoryunit)
 								@setvar($eta = 0)
 								@foreach($item->inventoryunit as $unit)
@@ -439,8 +447,8 @@
 										@endif
 									@endif
 								@endforeach
-								
-								@if ($eta > 0) 
+
+								@if ($eta > 0)
 									<br>
 									ETA: {{ $eta }}
 								@endif
@@ -463,8 +471,16 @@
 										{{ $item->shipInfo->mail_class }}
 										<br>
 									@endif
-									<a href = "{{ \Monogram\Helper::getTrackingUrl($item->shipInfo->shipping_id) }}" target = "_blank"> Trk# {{ $item->shipInfo->shipping_id }}</a>
-									<br>
+									<a href = "{{ \Monogram\Helper::getTrackingUrl($item->shipInfo->shipping_id) }}" target = "_blank">
+										Trk# {{ $item->shipInfo->shipping_id }}
+									</a>
+								@if($item->tracking_synced == 1)
+									<span data-toggle="tooltip" data-placement="top" title="Synced To Shopify" class="glyphicon glyphicon-ok-sign" style="color: green"></span>
+								@else
+									<span data-toggle="tooltip" data-placement="top" title="Unable to Synced Shopify: {{ $item->tracking_msg ?? 'Unknown reason' }}" class="glyphicon glyphicon-remove-sign" style="color: red"></span>
+								@endif
+
+								<br>
 									@if ($item->batch)
 										<a href = "{{ url(sprintf("/batches/details/%s", $item->batch_number)) }}"
 											 target = "_blank"> Batch {{ $item->batch_number }}</a>
@@ -473,7 +489,9 @@
 									<br>
 									{!! Form::button('Redo Item' , ['id'=>'redo-item', 'onclick' => "redo_item($item->id, $item->item_quantity);", 'class' => 'btn btn-xs btn-danger']) !!}
 						@elseif ($item->item_status == 'shipped' && $item->tracking_number != null)
-									<a href = "{{ \Monogram\Helper::getTrackingUrl($item->tracking_number) }}" target = "_blank">Trk# {{ $item->tracking_number }}</a>
+									<a href = "{{ \Monogram\Helper::getTrackingUrl($item->tracking_number) }}" target = "_blank">
+										Trk# {{ $item->tracking_number }}
+									</a>
 						@elseif ($item->item_status != 'shipped' && $item->item_status != 'cancelled' && $order->carrier != 'MN')
 									<br><br>
 									{!! Form::button('Enter Tracking' , ['id'=>'shipitem', 'onclick' => "track_item($item->id, '$item->item_id');", 'class' => 'btn btn-xs btn-success']) !!}
@@ -483,7 +501,7 @@
 			@endforeach
 			</tbody>
 		</table>
-		
+
 		<div class = "row">
 			@if ($order->store && $order->store->change_items == '1' && $order->order_status != 8)
 			<div class = "form-group" style="padding:20px;">
@@ -495,13 +513,13 @@
 			</div>
 			@endif
 		</div>
-	
+
 		<div class = "row">
 			<table style = "margin-left:775px">
-			<tr>
-				<td align = "right" style = "padding-right:40px ">Subtotal:</td>
-				<td align = "right">$<span id="subtotal">{{sprintf("%02.2f",$sub_total)}}</span></td>
-			</tr>
+{{--			<tr>--}}
+{{--				<td align = "right" style = "padding-right:40px ">Subtotal:</td>--}}
+{{--				<td align = "right">$<span id="subtotal">{{sprintf("%02.2f",$sub_total)}}</span></td>--}}
+{{--			</tr>--}}
 			<tr>
 				<td align = "right" style = "padding-right:40px ">Promotion <b>({{ $order->promotion_id }})</b>:</td>
 				<td align = "right">$<span id="promotion_value">{!!sprintf("%02.2f",$order->promotion_value)!!}</span></td>
@@ -602,9 +620,9 @@
 	</div>
 	</div>
 	{!! Form::close() !!}
-	
+
 	</div>
-	
+
 	<div class = "modal fade" id = "status-modal" tabindex = "-1" role = "dialog" aria-labelledby = "myModalLabel">
 		<div class = "modal-dialog modal-md" role = "document">
 			<div class = "modal-content">
@@ -631,7 +649,7 @@
 			</div>
 		</div>
 	</div>
-	
+
 	<div class = "modal fade" id = "ship-modal" tabindex = "-1" role = "dialog" aria-labelledby = "myModalLabel">
 		<div class = "modal-dialog modal-md" role = "document">
 			<div class = "modal-content">
@@ -657,7 +675,7 @@
 			</div>
 		</div>
 	</div>
-	
+
 	<div class = "modal fade" id = "track-modal" tabindex = "-1" role = "dialog" aria-labelledby = "myModalLabel">
 	  <div class = "modal-dialog modal-sm" role = "document">
 	    <div class = "modal-content">
@@ -711,27 +729,27 @@
 	    </div>
 	  </div>
 	</div>
-	
+
 	@include('email_templates.email_modal')
-	
-	<div class = "row" id = "modal-holder"> 
-	</div> 
-	
+
+	<div class = "row" id = "modal-holder">
+	</div>
+
 	<script type = "text/javascript">
-		
+
 		// @if ($order->store && $order->store->change_items == '0')
 		// 	$(document).ready(function() {
-		// 		$(".item_quantity").prop("readonly", true); 
+		// 		$(".item_quantity").prop("readonly", true);
 		// 		$(".item_price").prop("readonly", true);
 		// 	});
 		// @endif
-		
+
 		function change_status () {
 			var choice = $("#status_selector").val();
 			$("#new_status").val(choice);
 			$("#status-modal").modal('show');
 		}
-		
+
 		function change_shipmethod (form) {
 			if ($("#shipping_method").val() == 'MN*') {
 				$("#ship-modal").modal('show');
@@ -744,16 +762,16 @@
 			return quantity;
         }
 		function track_item (id, item_id)
-		{ 
+		{
 			$("#track_item_id").val(id);
 			$("#track_shopify_item_line_id").val(item_id);
 			const quantity = getItemQuantity(item_id);
 			$("#track_shopify_item_quantity").val(quantity);
 			$("#track-modal").modal('show');
 		}
-		
+
 		function redo_item(id, qty)
-		{ 
+		{
 			$("#redo_item_id").val(id);
 			if (qty > 1) {
 				$("#redo_item_qty").val(qty);
@@ -763,7 +781,7 @@
 			}
 			$("#redo-modal").modal('show');
 		}
-		
+
 		$("a#add-note").on('click', function (event)
 		{
 			event.preventDefault();
@@ -771,11 +789,11 @@
 			$(this).hide();
 			$("#instant-add-note").show();
 		});
-		
-		$('.delete-item').click(function(event) 
+
+		$('.delete-item').click(function(event)
 		{
 			event.preventDefault();
-			if (confirm("Are you sure want to cancel this item?"))   {  
+			if (confirm("Are you sure want to cancel this item?"))   {
 				window.location = $(this).attr('href');
 			}
 		});
@@ -786,7 +804,7 @@
 		{
 				field: document.getElementById('ship_date'),
 				format : "YYYY-MM-DD",
-				minDate: new Date('{{ date('Y-m-d') }}'),    
+				minDate: new Date('{{ date('Y-m-d') }}'),
 		});
 	</script>
 
@@ -796,34 +814,34 @@
 				serviceUrl: '/orders/manual/ajax_search',
 				onSelect: function (suggestion) {
 						addItem(suggestion.data, suggestion.id_catalog, suggestion.desc, suggestion.image, suggestion.price, 1);
-						$(this).val(''); 
+						$(this).val('');
 						return false;
 				}
 		});
-		
-		function addItem (sku, id_catalog, desc, image, price, quantity) 
-		{	
+
+		function addItem (sku, id_catalog, desc, image, price, quantity)
+		{
 				var unique = Math.floor(Math.random() * 100);
-				
+
 				var tr = "<tr id='" + unique + "' id_catalog='" + id_catalog + "' data-sku='" + sku + "' class='item-line'>" +
-								"<td> <img src='" + image + "' width='100' /> </td>" + 
+								"<td> <img src='" + image + "' width='100' /> </td>" +
 								"<td>" + sku + "<br>" + desc + "</td>" +
 								"<input type='hidden' name='item_sku[]' value='" + sku + "'>" +
 								"<input type='hidden' name='item_id[]' value=''>" +
 								"<input type='hidden' name='child_sku[]' value=''>" +
 								"<td><textarea name='item_option[]' class='item_option' cols=50 rows=3 wrap='physical'></textarea></td>" +
-								"<td><input type='number' name='item_quantity[]' class='item_quantity' step=1 min=1 onChange='updateTotals();' value=" + quantity + "></td>" + 
-								"<td><input type='number' name='item_price[]' class='item_price' step=.01 min=0 onChange='updateTotals();' value=" + price + "></td>" + 
+								"<td><input type='number' name='item_quantity[]' class='item_quantity' step=1 min=1 onChange='updateTotals();' value=" + quantity + "></td>" +
+								"<td><input type='number' name='item_price[]' class='item_price' step=.01 min=0 onChange='updateTotals();' value=" + price + "></td>" +
 								"<td>" + "<a href='#' id='crawl' class='btn btn-xs btn-primary' style='width:75px;' onClick='return false;'>Customize</a>" +
-								"<br><br>" + 
+								"<br><br>" +
 								"<a href='#' class='delete-row btn btn-xs btn-danger' style='width:75px;' onClick='return false;'>Remove</a>" +
 								"</td></tr>";
 
 			$("#items-table").append(tr);
-			
+
 			updateTotals();
 		}
-		
+
 		$(document).on('click', '.delete-row', function (event)
 		{
 			event.preventDefault();
@@ -831,7 +849,7 @@
 				$(this).closest('tr').remove();
 			}
 		});
-		
+
 		function ajax (url, method, data, successHandler, errorHandler)
 		{
 			NProgress.start();
@@ -855,61 +873,61 @@
 			var sku = row.attr('data-sku');
 			var id_catalog = row.attr('id_catalog');
 			var unique = row.attr('id');
-			
+
 			var url = "/orders/manual/product_info";
-			
+
 			var data = {
 				"sku": sku, "store_id": store_id, "id_catalog": id_catalog, "unique": unique
 			};
-		
+
 			var method = "GET";
 
 			ajax(url, method, data, fetchProductInformationOnSelect, showProductInformationFetchFailed);
 
 		});
-		
+
 		function showProductInformationFetchFailed (xhr)
 		{
 			alert("Product not found or Something went wrong!");
 		}
-		
-		function fetchProductInformationOnSelect (data) 
-		{ 
-			var result = data.result; 
-			if ( result == false ) { 
-				alert('Something went wrong!'); 
-			} else { 
-				$("#modal-holder").html(result); 
-				var unique = data.unique; 
-				$("." + unique).modal({ 
-					backdrop: 'static', keyboard: false, show: true 
-				}); 
-			} 
-		} 
-		
-		$(document).on('click', 'button.add-item', function () 
-		{ 	
-				var body = $(this).closest('div.modal-content').find('div.modal-body'); 
-				var unique = body.find('.hidden_unique').val(); 
+
+		function fetchProductInformationOnSelect (data)
+		{
+			var result = data.result;
+			if ( result == false ) {
+				alert('Something went wrong!');
+			} else {
+				$("#modal-holder").html(result);
+				var unique = data.unique;
+				$("." + unique).modal({
+					backdrop: 'static', keyboard: false, show: true
+				});
+			}
+		}
+
+		$(document).on('click', 'button.add-item', function ()
+		{
+				var body = $(this).closest('div.modal-content').find('div.modal-body');
+				var unique = body.find('.hidden_unique').val();
 				var options = '';
 				body.find('.option-field').each( function(label,value) {
 						options = options + $(this).attr("name") + ' = ' + $(this).val() + "\n";
 				});
 				 $("#" + unique).find(".item_option").val(options);
-				body.closest('.modal').modal('hide'); 
+				body.closest('.modal').modal('hide');
 				body.remove();
 				body.empty();
-		}); 
-		
-		$(document).on('click', '.cancel', function () 
-		{ 
+		});
+
+		$(document).on('click', '.cancel', function ()
+		{
 			$(this).closest('div.modal-content').find('div.modal-body').remove();
-		}); 
-		
-		function updateTotals() 
+		});
+
+		function updateTotals()
 		{
 			var subtotal = 0;
-			
+
 			$("#items-table tr").each( function() {
 					if ($(this).attr("class") == 'item-line') {
 						var quantity = $(this).find(".item_quantity").val();
@@ -917,9 +935,9 @@
 						subtotal = parseFloat(subtotal) + (parseInt(quantity) * parseFloat(price));
 					}
 			});
-			
+
 			$("#subtotal").text(Math.round(subtotal*100)/100);
-			
+
 			var promotion = $("#promotion_value").text();
 			var coupon = $("#coupon_value").text();
 			var gift = $("#gift_wrap_cost").val();
@@ -928,18 +946,18 @@
 			var adjustments = $("#adjustments").val();
 			var tax = $("#tax_charge").text();
 
-			var total = parseFloat(subtotal) - 
+			var total = parseFloat(subtotal) -
 									parseFloat(coupon) -
 									parseFloat(promotion) +
-									parseFloat(gift) + 
-									parseFloat(shipping) + 
-									parseFloat(insurance) + 
-									parseFloat(adjustments) + 
+									parseFloat(gift) +
+									parseFloat(shipping) +
+									parseFloat(insurance) +
+									parseFloat(adjustments) +
 									parseFloat(tax);
-			
+
 			$("#total").text(Math.round(total*100)/100);
 		}
-		
+
 		$("input[type=number]").bind('keyup input', function(){
 			updateTotals();
 		});

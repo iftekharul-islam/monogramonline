@@ -118,7 +118,35 @@
 
 		<div class = "col-xs-12">
 			<div class = "panel panel-default">
-				<div class = "panel-heading">Create Quickbooks Export by Date</div>
+				<div class = "panel-heading">Export by Vendor</div>
+				<div class = "panel-body">
+					{!! Form::open(['url' => '/transfer/export/qb/vendor', 'method' => 'post']) !!}
+					<div class = "form-group col-xs-3">
+						{!! Form::select('vendor', $vendors, null, ['id'=>'vendor', 'class' => 'form-control']) !!}
+					</div>
+					<div class = "form-group col-xs-3">
+						<div class = 'input-group date' id = 'start_date_picker'>
+							{!! Form::text('start_date', null, ['id'=>'start_datepicker', 'class' => 'form-control', 'placeholder' => 'Enter start date', 'autocomplete' => 'off']) !!}
+							<span class = "input-group-addon"><span class = "glyphicon glyphicon-calendar"></span></span>
+						</div>
+					</div>
+					<div class = "form-group col-xs-3">
+						<div class = 'input-group date' id = 'end_date_picker'>
+							{!! Form::text('end_date', null, ['id'=>'end_datepicker', 'class' => 'form-control', 'placeholder' => 'Enter end date', 'autocomplete' => 'off']) !!}
+							<span class = "input-group-addon"><span class = "glyphicon glyphicon-calendar"></span></span>
+						</div>
+					</div>
+					<div class = "form-group col-xs-2">
+						{!! Form::submit('Create', ['id'=>'search', 'style' => 'margin-top: 5px;', 'class' => 'btn btn-primary']) !!}
+					</div>
+					{!! Form::close() !!}
+				</div>
+			</div>
+		</div>
+
+		<div class = "col-xs-12">
+			<div class = "panel panel-default">
+				<div class = "panel-heading">Export by Ship Date</div>
 				<div class = "panel-body">
 					{!! Form::open(['url' => '/transfer/export/qb', 'method' => 'post']) !!}
 						<div class = "form-group col-xs-3">
@@ -151,7 +179,7 @@
 				<div class = "panel-body">
 					{!! Form::open(['url' => '/transfer/export/qbcsv', 'method' => 'post']) !!}
 					<div class = "form-group col-xs-3">
-						{!! Form::select('store_ids[]', $stores, $store_ids ?? [], ['id'=>'store_ids', 'multiple' => 'multiple', 'class' => 'form-control']) !!}
+						{!! Form::select('store_ids[]', $stores, $store_ids ?? [], ['id'=>'csv_store_ids', 'multiple' => 'multiple', 'class' => 'form-control']) !!}
 					</div>
 					<div class = "form-group col-xs-3">
 						<div class = 'input-group date' id = 'start_date_picker'>
@@ -183,12 +211,25 @@
 												includeSelectAllOption:true,
 												numberDisplayed: 1,
 											});
-		
+
+		$('#csv_store_ids').multiselect({
+												nonSelectedText:'Select Store',
+												includeSelectAllOption:true,
+												numberDisplayed: 1,
+											});
+
 		var picker = new Pikaday(
 		{
 				field: document.getElementById('start_datepicker'),
 				format : "YYYY-MM-DD",
-				minDate: new Date('2016-06-01'),    
+				minDate: new Date('2016-06-01'),
+		});
+
+		var picker = new Pikaday(
+		{
+				field: document.getElementById('start_datepicker_csv'),
+				format : "YYYY-MM-DD",
+				minDate: new Date('2016-06-01'),
 		});
 
 		var picker = new Pikaday(
@@ -197,7 +238,14 @@
 				format : "YYYY-MM-DD",
 				minDate: new Date('2016-06-01'),    
 		});
-		
+
+		var picker = new Pikaday(
+		{
+				field: document.getElementById('end_datepicker_csv'),
+				format : "YYYY-MM-DD",
+				minDate: new Date('2016-06-01'),
+		});
+
 	</script>
 	
 </body>

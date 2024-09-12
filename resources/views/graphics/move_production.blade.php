@@ -52,31 +52,31 @@
 			
 			<br><br>
 			
-			@if (count($to_move) > 0)  
-			    
+			@if (count($to_move) > 0)
+
 				<h4 class="page-header">{!! $to_move->sum('total') !!} Batches to move to production</h4>
-						
+
 				<table class="table">
-					
+
 				@foreach ($to_move as $row)
 					<tr>
-						<td>{{ $row->section->section_name }}</td>
-						<td>{{ $row->production_station->station_description }}</td>
+						<td>{{ $row->section->section_name ?? 'N/A' }}</td>
+						<td>{{ $row->production_station->station_description ?? 'N/A' }}</td>
 						<td align="right">
-							<a href="{{ url(sprintf('/batches/list?graphic_found=1&type=G&status=movable&production_station=%s', $row->production_station_id)) }}" 
+							<a href="{{ url(sprintf('/batches/list?graphic_found=1&type=G&status=movable&production_station=%s', $row->production_station_id)) }}"
 								target="_blank">{{ $row->total }}</a>
 						</td>
 					</tr>
 			  @endforeach
-				
+
 					<tr>
 						<th></th>
 						<th style="text-align:right;">Total:</th>
-						<th style="text-align:right;">{{ $to_move->sum('total') }}</th>
+						<th style="text-align:right;">{{ $to_move->sum('total') ?? 'N/A' }}</th>
 					</tr>
-					
+
 				</table>
-			@else 
+			@else
 				<br><br>
 			  <div class = "alert alert-warning">No batches found</div>
 			@endif

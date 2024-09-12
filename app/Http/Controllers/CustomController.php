@@ -141,7 +141,7 @@ class CustomController extends Controller
 
     public function option_mass()
     {
-        $file = "/var/www/order.monogramonline.com/BypassOption.json";
+        $file = "/var/www/5p_oms/BypassOption.json";
 
         $data = [];
         if (file_exists($file)) {
@@ -160,7 +160,7 @@ class CustomController extends Controller
     {
         dd("1");
 
-        $file = "/var/www/order.monogramonline.com/BypassOption.json";
+        $file = "/var/www/5p_oms/BypassOption.json";
 
         $data = [];
         if (file_exists($file)) {
@@ -180,7 +180,7 @@ class CustomController extends Controller
         $order = Order::findOrFail(\request()->get("order_id"));
 
         $order->carrier = "US";
-        $order->method = "FIRST_CLASS";
+        $order->method = "GROUNDADVANTAGE";
         $order->save();
     }
 
@@ -192,7 +192,7 @@ class CustomController extends Controller
 
     public function testMassDelete2()
     {
-        $file = "/var/www/order.monogramonline.com/import2.csv";
+        $file = "/var/www/5p_oms/import2.csv";
 
         $csv = new CSV;
         $data = $csv->intoArray($file, ",");
@@ -239,7 +239,7 @@ class CustomController extends Controller
     public function estMassSetOtherHold()
     {
 
-        $file = "/var/www/order.monogramonline.com/import2.csv";
+        $file = "/var/www/5p_oms/import2.csv";
 
         $csv = new CSV;
         $data = $csv->intoArray($file, ",");
@@ -267,7 +267,7 @@ class CustomController extends Controller
     public function testMassDelete()
     {
 
-        $file = "/var/www/order.monogramonline.com/import.csv";
+        $file = "/var/www/5p_oms/import.csv";
 
         $csv = new CSV;
         $data = $csv->intoArray($file, ",");
@@ -316,7 +316,7 @@ class CustomController extends Controller
         });
 
         $data = [];
-        $file = "/var/www/order.monogramonline.com/Store.json";
+        $file = "/var/www/5p_oms/Store.json";
         if (file_exists($file)) {
             $data = json_decode(file_get_contents($file), true);
         }
@@ -378,7 +378,7 @@ class CustomController extends Controller
 
     public function shipmentCache()
     {
-        $file = "/var/www/order.monogramonline.com/Shipment.json";
+        $file = "/var/www/5p_oms/Shipment.json";
 
         $data = [];
         if (file_exists($file)) {
@@ -386,6 +386,8 @@ class CustomController extends Controller
         }
 
         Cache::put("SHIPMENT_CACHE", $data, 60 * 8);
+
+        dd(Cache::get("SHIPMENT_CACHE"));
     }
 
     public function orderLayout2()
@@ -411,7 +413,7 @@ class CustomController extends Controller
     public function testExport()
     {
         $stores =  Store::all();
-        $file = "/var/www/order.monogramonline.com/Store.json";
+        $file = "/var/www/5p_oms/Store.json";
 
         $data = [];
         if (file_exists($file)) {
@@ -499,7 +501,7 @@ class CustomController extends Controller
         //
         //
         $inventoryData = [];
-        $file2 = "/var/www/order.monogramonline.com/Inventories.json";
+        $file2 = "/var/www/5p_oms/Inventories.json";
         if (file_exists($file2)) {
             $inventoryData = json_decode(file_get_contents($file2), true);
         }
@@ -583,7 +585,7 @@ class CustomController extends Controller
             return Store::all();
         });
 
-        $file = "/var/www/order.monogramonline.com/Store.json";
+        $file = "/var/www/5p_oms/Store.json";
 
         $data = [];
         if (file_exists($file)) {
@@ -666,7 +668,7 @@ class CustomController extends Controller
 
     public function shippingTest()
     {
-        $file = "/var/www/order.monogramonline.com/import.csv";
+        $file = "/var/www/5p_oms/import.csv";
 
         $csv = new CSV;
         $data = $csv->intoArray($file, ",");
@@ -707,7 +709,7 @@ class CustomController extends Controller
 
     public function pricesTest()
     {
-        $file = "/var/www/order.monogramonline.com/import.csv";
+        $file = "/var/www/5p_oms/import.csv";
 
         $csv = new CSV;
         $data = $csv->intoArray($file, ",");

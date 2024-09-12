@@ -14,6 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Monogram\ImageHelper;
 use Monogram\Sure3d;
 
 class BatchController extends Controller
@@ -52,6 +53,7 @@ class BatchController extends Controller
             $batches = Batch::with('route', 'station', 'itemsCount', 'first_item.product', 'store')
                 ->whereIn('batch_number', $batch_numbers)
                 ->latest('created_at')
+                ->where('is_deleted', 0)
                 ->paginate(50);
 
             $total = Item::whereIn('batch_number', $batch_numbers)
@@ -244,6 +246,56 @@ class BatchController extends Controller
         return view('batches.list_graphic', compact('batches', 'total', 'request', 'routes', 'stationsList', 'statuses', 'stores'));
     }
 
+    public function moveStation($stage, $batch_number)
+    {
+        $batch = Batch::with('route.stations_list')->where('batch_number', $batch_number)
+            ->where('is_deleted', 0)
+            ->first();
+
+        if (empty($batch)) {
+            return redirect()->back()->withErrors('Batch not found');
+        }
+//        $batch->station_list->pluck('station_name')->toArray();
+
+        $index = -1;
+        foreach ($batch->route->stations_list as $key => $station) {
+            if($station->station_id === $batch->station_id) {
+                $index = $key;
+                break;
+            }
+        }
+        if($index !== -1 && isset($batch->route->stations_list[$index])) {
+            // Get the next station's ID
+            if($stage === "next") {
+                $index++;
+            } else if($stage === "prev") {
+                $index--;
+            }
+            if ($index < 0) {
+                $index = 0;
+            }
+            //if max
+            if ($index >= count($batch->route->stations_list)) {
+                $index = count($batch->route->stations_list) - 1;
+            }
+            $nextStationId = $batch->route->stations_list[$index]->station_id;
+            $name = $batch->route->stations_list[$index]->station_name;
+            logger("Next Station ID: $nextStationId");
+
+            $batch->station_id = $nextStationId;
+            $batch->save();
+
+            return redirect()->back()->with('success', 'Batch moved to station :' . $name);
+
+        } else {
+            logger("Station with ID $batch->station_id not found or no next station and set default :(");
+            return redirect()->back()->withErrors('Station not found');
+        }
+
+
+
+    }
+
     public function show($batch_number, Request $request)
     {
         if ($request->has('label')) {
@@ -255,7 +307,7 @@ class BatchController extends Controller
         Batch::isFinished($batch_number);
 
         $batch = Batch::with('items.order.store', 'items.rejections.user', 'items.rejections.rejection_reason_info',
-            'items.spec_sheet', 'items.product', 'station', 'route', 'section', 'store', 'summary_user')
+            'items.spec_sheet', 'items.product', 'items.parameter_option', 'station', 'route', 'section', 'store', 'summary_user')
             ->where('is_deleted', 0)
             ->where('batch_number', $batch_number)
             ->get();

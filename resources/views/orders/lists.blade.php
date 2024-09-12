@@ -152,7 +152,7 @@
 				@foreach($orders as $order)
 					<tr data-id = "{{$order->id}}">
 						<td>
-								<a href = "{{ url("orders/details/" . $order->id) }}" target = "_blank">{{ $order->short_order }}</a>
+								<a href = "{{ url("orders/details/" . $order->id) }}" target = "_blank"  style="{{ in_array($order->short_order, $duplicates) ? "background-color: yellow;" : '' }}">{{ $order->short_order }}</a>
 								<br>
 								<a href = "{{ url("orders/details/" . $order->id) }}" target = "_blank">#{{ $order->purchase_order }}</a>
 								<div class="pull-right">

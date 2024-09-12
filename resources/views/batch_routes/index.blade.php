@@ -75,6 +75,10 @@
 										<th style = "padding-bottom:10px; text-align: center;"><b>Batch code</b></th>
 										<th style = "padding-bottom:10px; text-align: center;"><b>Route name</b></th>
 										<th style = "padding-bottom:10px; text-align: center;"><b>Max unit</b></th>
+										<th style = "padding-bottom:10px; text-align: center;"><b>Scale</b></th>
+										<th style = "padding-bottom:10px; text-align: center;"><b>Width</b></th>
+										<th style = "padding-bottom:10px; text-align: center;"><b>Height</b></th>
+										<th style = "padding-bottom:10px; text-align: center;"><b>Printer</b></th>
 										<th style = "padding-bottom:10px; text-align: center;"><b>Stations</b></th>
 										<th style = "padding-bottom:10px; text-align: center;"><b>Export<br>template</b></th>
 										<th style = "padding-bottom:10px; text-align: center;"><b>Nesting</b></th>
@@ -104,15 +108,24 @@
 													{!! Form::text('s_summary_header_1', $batch_route->summary_msg_2, ['style'=>'width:200px;margin-right:25px']) !!}
 											</td>
 											<td style = "vertical-align: top;padding-bottom:7px;">{!! Form::text('s_batch_max_units', $batch_route->batch_max_units, ['style'=>'width:50px;margin-right:25px']) !!}</td>
-											<td style = "vertical-align: top;padding-bottom:7px;">{!! Form::textarea('s_batch_stations', implode(",\n", array_map(function($station) { return $station['station_name']; }, $batch_route->stations_list->toArray())), ['style'=>'width:120px;height:130px;margin-right:10px;overflow-y: scroll;']) !!}</td>
+											<td style = "vertical-align: top;padding-bottom:7px;">{!! Form::number('scale', $batch_route->scale, ['style'=>'width:50px;margin-right:25px']) !!}</td>
+											<td style = "vertical-align: top;padding-bottom:7px;">{!! Form::number('width', $batch_route->width, ['style'=>'width:50px;margin-right:25px']) !!}</td>
+											<td style = "vertical-align: top;padding-bottom:7px;">{!! Form::number('height', $batch_route->height, ['style'=>'width:50px;margin-right:25px']) !!}</td>
+											<td style = "vertical-align: top;padding-bottom:7px">
+												{!! Form::select('Printer', $printers, $batch_route->printer, ['style'=>'width:140px']) !!}
+												<br>
+												{!! Form::checkbox('Auto print', $batch_route->is_auto, $batch_route->is_auto) !!}
+												Auto Print
+											</td>
+											<td style = "vertical-align: top;padding-bottom:7px;">{!! Form::textarea('s_batch_stations', implode(",\n", array_map(function($station) { return $station['station_name']; }, $batch_route->stations_list->toArray())), ['style'=>'width:120px;height:130px;margin-right:10px;margin-left:10px;overflow-y: scroll;']) !!}</td>
 											<td style = "vertical-align: top;padding-bottom:7px;">{!! Form::select('s_export_template', $templates, $batch_route->export_template, ['style'=>'width:70px;margin-right:25px']) !!}</td>
 											<td style = "vertical-align: top;padding-bottom:7px;">{!! Form::select('nesting', ['0' => 'No', '1' => 'Yes'], $batch_route->nesting, ['style'=>'width:70px;margin-right:25px']) !!}</td>
 											<td style = "vertical-align: top;padding-bottom:7px;">
 													CSV Directory:<br>
-													{!! Form::text('s_export_dir', $batch_route->export_dir, ['style'=>'width:150px;margin-right:25px', 'placeholder' => 'Directory']) !!}
+													{!! Form::text('s_export_dir', $batch_route->csv_extension, ['style'=>'width:150px;margin-right:25px', 'placeholder' => 'Directory']) !!}
 													<br><br>
 													File Extension:<br>
-													{!! Form::text('s_csv_extension', $batch_route->csv_extension, ['style'=>'width:150px;margin-right:25px', 'placeholder' => 'File Extension']) !!}
+													{!! Form::text('s_csv_extension', $batch_route->export_dir, ['style'=>'width:150px;margin-right:25px', 'placeholder' => 'File Extension']) !!}
 													<br><br>
 													Graphic Directory:<br>
 													{!! Form::text('s_graphic_dir', $batch_route->graphic_dir, ['style'=>'width:150px;margin-right:25px', 'placeholder' => 'Directory']) !!}
@@ -154,6 +167,11 @@
 								{!! Form::hidden('csv_extension', null, ['id' => 'update_csv_extension']) !!}
 								{!! Form::hidden('graphic_dir', null, ['id' => 'update_graphic_dir']) !!}
 								{!! Form::hidden('batch_options', null, ['id' => 'update_batch_options']) !!}
+								{!! Form::hidden('scale', null, ['id' => 'update_scale']) !!}
+								{!! Form::hidden('width', null, ['id' => 'update_width']) !!}
+								{!! Form::hidden('height', null, ['id' => 'update_height']) !!}
+								{!! Form::hidden('printer', null, ['id' => 'update_printer']) !!}
+								{!! Form::hidden('auto_printer', false, ['id' => 'update_auto_printer']) !!}
 								{!! Form::close() !!}
 
 							@else
@@ -227,8 +245,8 @@
 		});
 		$("a.update").on('click', function (event)
 		{
-			debugger;
-			event.preventDefault();
+			// debugger;
+			// event.preventDefault();
 			var tr = $(this).closest('tr');
 			var id = tr.attr('data-id');
 			var code = tr.find('input').eq(0).val();
@@ -236,13 +254,22 @@
 			var msg_1 = tr.find('input').eq(2).val();
 			var msg_2 = tr.find('input').eq(3).val();
 			var unit = tr.find('input').eq(4).val();
-			var csv_extension = tr.find('input').eq(6).val();
-			var export_dir = tr.find('input').eq(5).val();
-			var graphic_dir = tr.find('input').eq(7).val();
+			var scale = tr.find('input').eq(5).val();
+			var width = tr.find('input').eq(6).val();
+			var height = tr.find('input').eq(7).val();
+			var csv_extension = tr.find('input').eq(9).val();
+			var export_dir = tr.find('input').eq(10).val();
+			var graphic_dir = tr.find('input').eq(11).val();
 			var stations = tr.find('textarea').eq(0).val();
-			var export_template = tr.find('select').eq(0).val();
+			var printer = tr.find('select').eq(0).val();
+			var export_template = tr.find('select').eq(1).val();
 			var nesting = tr.find('select').eq(1).val();
 			var options = tr.find('textarea').eq(1).val();
+			var auto_printer = tr.find('input[type="checkbox"]').eq(0).prop('checked');
+
+			console.log(csv_extension)
+			console.log(export_dir)
+			console.log(graphic_dir)
 
 			$("input#update_batch_code").val(code);
 			$("input#update_batch_route_name").val(route);
@@ -256,7 +283,12 @@
 			$("input#update_export_dir").val(export_dir);
 			$("input#update_graphic_dir").val(graphic_dir);
 			$("input#update_batch_options").val(options);
-			
+			$("input#update_scale").val(scale);
+			$("input#update_printer").val(printer);
+			$("input#update_auto_printer").val(auto_printer);
+			$("input#update_width").val(width);
+			$("input#update_height").val(height);
+
 			var form = $("form#update-batch-routes");
 			var url = form.attr('action');
 			form.attr('action', url.replace('id', id));

@@ -27,7 +27,9 @@ class UPS extends CarrierInterface
     if ($store->ups_type == 'P') {
       $shipper->setShipperNumber($store->ups_account);
     } else if ($store->company == 1) {
-      $shipper->setShipperNumber('20627V');
+//      $shipper->setShipperNumber('20627V');
+        // update by the direction of alec
+      $shipper->setShipperNumber('A43181');
     } else {
 		  $shipper->setShipperNumber(env('SHIPPER_NUMBER'));
     }

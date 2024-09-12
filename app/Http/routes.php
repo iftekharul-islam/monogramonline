@@ -3,8 +3,13 @@
 header('Access-Control-Allow-Origin:  *');
 //header('Access-Control-Allow-Methods:  POST, GET, OPTIONS, PUT, DELETE');
 //header('Access-Control-Allow-Headers:  Content-Type, X-Auth-Token, Origin, Authorization');
+get('shipping-method', function(){
+    $shipping_methods = \Ship\Shipper::listMethods();
+    dd($shipping_methods);
 
+});
 get('trk_order_status', 'ItemController@getOrderStatus');
+get('zakeke-get-order', 'GraphicsController@zakekeOrderByOrderId');
 
 //cron jobs
 get('scripts/getInput', 'StoreController@retrieveData');
@@ -31,13 +36,27 @@ get('getwasatch11status', 'WaDashboardController@get11Pc');
 get('getwasatch23status', 'WaDashboardController@get23Pc');
 get('getwasatch130status', 'WaDashboardController@get130Pc');
 
+get('auto-batch', 'OrderController@batchTest');
 get('getshopifyorder', 'OrderController@getShopifyOrder');
+get('shopify-order/{id}', 'OrderController@shopifyOrderById');
+get('shopify-thumb/{order_id}/{item_id}', 'OrderController@shopifyThumb');
+get('shopify-pdf-fetch/{order_id}/{item_id}/{batch_number}', 'OrderController@getItemPdfImageLink');
+
+get('make-image-mirror/{image}/{thumb}', 'OrderController@imageMirror');
+get('make-image-rotate/{image}/{thumb}', 'OrderController@imageRotate');
+post('make-image-resize', 'OrderController@imageResize');
+
+get('update-shopify-thumb/{order_id}/{item_id}', 'OrderController@updateShopifyThumb');
 get('initial_token_generate_request', 'OrderController@initialTokenGenerateRequest');
 get('generate_shopify_token', 'OrderController@generateShopifyToken');
-get('getShopifyorderbyordernumber', 'OrderController@getShopifyOrderByOrderNumber');
+//get('getShopifyorderbyordernumber', 'OrderController@getShopifyOrderByOrderNumber');
+get('get-shopify-order-items', 'OrderController@getShopifyOrderByOrderNumber');
+get('sync-shopify-by-order', 'OrderController@syncShopifyOrderByOrderNumber');
 get('synorderbydate', 'OrderController@synOrderByDate');
 get('synOrderBetweenId', 'OrderController@synOrderBetweenId');
 get('getcouponproducts', 'CouponController@getCouponProducts');
+get('shopify-tracking-number-update', 'OrderController@getShopifyOrdersForUpdateTNumbers');
+
 
 
 // Dashboard V2
@@ -103,7 +122,7 @@ get("filters/clear", "CustomController@filtersClear");
 get("fix/image-load/link/{batch_number}", "CustomController@fixImageLoadLink");
 
 // DHL TESTING API --------------------------------------------------------------------------
-get('getdhltoken','ShippingController@getDhlAccessToken');
+get('getdhltoken', 'ShippingController@getDhlAccessToken');
 get('dhl_track/{tracking}', 'ShippingController@dhlTrack');
 #---------------------------------------------------------------------------
 
@@ -121,8 +140,8 @@ post('move_to_qc/show_batch', 'GraphicsController@showBatchQc');
 
 
 // auth middleware enabled controller
-Route::group([ 'middleware' => [ 'auth' ] ], function () {
-    Route::group([ 'middleware' => 'user_has_access' ], function () {
+Route::group(['middleware' => ['auth']], function () {
+    Route::group(['middleware' => 'user_has_access'], function () {
         get('/', 'HomeController@index');
         get('/homepage2', 'HomeController@index2');
         get('logout', 'AuthenticationController@getLogout');
@@ -169,7 +188,7 @@ Route::group([ 'middleware' => [ 'auth' ] ], function () {
         post('prod_config/import_batch_routes', 'ImportController@importBatchRoute');
         get('prod_config/export_batch_routes', 'ExportController@batch_routes');
         resource('prod_config/templates', 'TemplateController', [
-            'except' => [ 'create' ],
+            'except' => ['create'],
         ]);
         get('prod_config/rejection_reasons/sort/{direction}/{id}', 'RejectionReasonController@sortOrder');
         resource('prod_config/rejection_reasons', 'RejectionReasonController');
@@ -191,7 +210,7 @@ Route::group([ 'middleware' => [ 'auth' ] ], function () {
         get('purchases/print/{purchase_id}', 'PrintController@purchase');
         resource('purchases/purchasedinvproducts', 'PurchasedInvProductsController');
         resource('purchases', 'PurchaseController');
-        post('purchases/getuniquestock','InventoryController@getStockNoUnique');
+        post('purchases/getuniquestock', 'InventoryController@getStockNoUnique');
 
         //user Admin
         resource('users', 'UserController');
@@ -240,10 +259,16 @@ Route::group([ 'middleware' => [ 'auth' ] ], function () {
         get('graphics', 'GraphicsController@index');
         get('graphics/print_sublimation', 'GraphicsController@showSublimation');
         post('graphics/print_all', 'GraphicsController@printAllSublimation');
+        post('graphics/print_selected', 'GraphicsController@printSelectedSublimation');
+//        post('graphics/vendor_selected', 'GraphicsController@printSelectedForVendor');
+        post('graphics/print_selected/vendor', 'GraphicsController@printSelectedForVendor');
+        get('graphics/print_selected/vendor-summary', 'GraphicsController@printSelectedForVendorSummary');
+        get('graphics/update-batch-scale/{batch}/{scale}', 'GraphicsController@updateBatchScale');
         get('graphics/printer_config', 'GraphicsController@printerConfig');
         get('graphics/delete_file/{graphic_dir}/{file}', 'GraphicsController@deleteFile');
         post('graphics/move_to_print', 'GraphicsController@printSublimation');
         post('graphics/reprint_graphic', 'GraphicsController@reprintGraphic');
+        get('graphics/reprint_graphic_api', 'GraphicsController@reprintGraphic');
         get('graphics/reprint_bulk', 'GraphicsController@reprintBulk');
         get('graphics/sent_to_printer', 'GraphicsController@sentToPrinter');
         post('graphics/complete_manual', 'GraphicsController@completeManual');
@@ -256,7 +281,6 @@ Route::group([ 'middleware' => [ 'auth' ] ], function () {
         get('graphics/resizeBatch/{id}/{max_size}', 'GraphicsController@resizeBatchMaxSize');
         get('graphics/resizeNatico', 'GraphicsController@resizeNaticoImages');
         get('graphics/download_sure3d_by_item_id', 'GraphicsController@downloadSure3dByItemId');
-
 
 
         resource('graphics/designs', 'DesignController');
@@ -279,13 +303,13 @@ Route::group([ 'middleware' => [ 'auth' ] ], function () {
         post('picking/delete', 'PickingController@deleteInventoryReport');
 
         //inventory
-        get('inventories/ajax_update','InventoryController@updateInventory');
+        get('inventories/ajax_update', 'InventoryController@updateInventory');
         resource('inventories', 'InventoryController');
         resource('inventoryunit', 'InventoryUnitController');
 
         //inventory Admin
-        get('inventory_admin/ajax_update','InventoryController@updateInventory');
-        get('inventory_admin/calculate_ordering','InventoryController@calculateOrdering');
+        get('inventory_admin/ajax_update', 'InventoryController@updateInventory');
+        get('inventory_admin/calculate_ordering', 'InventoryController@calculateOrdering');
         get('inventory_admin/duplicate/{id}', 'InventoryController@create');
         get('inventory_admin/delete', 'InventoryController@delete');
         resource('inventory_admin/inventory_adjustments', 'InventoryAdjustmentController');
@@ -326,7 +350,11 @@ Route::group([ 'middleware' => [ 'auth' ] ], function () {
         get('batches/tray_label/{id}', 'BatchController@trayLabel');
         get('batches/view_graphic', 'GraphicsController@viewGraphic');
 
+        get('batches/details-move/{stage}/{id}', 'BatchController@moveStation');
+        get('batches/tray_label/{id}', 'BatchController@trayLabel');
+
         get('reject_item', 'RejectionController@reject');
+        get('reject_and_archive', 'RejectionController@rejectAndArchive');
 
         get('move_next', 'ProductionController@openMoveNext');
         post('move_next', 'ProductionController@moveNextStation');
@@ -368,6 +396,7 @@ Route::group([ 'middleware' => [ 'auth' ] ], function () {
         post('backorders/stock_change', 'BackorderController@stockNumber');
 
         get('items/delete_item/{order_id}/{item_id}', 'ItemController@delete_item_id');
+        get('items/syn_item_thm/{order_id}/{item_id}', 'ItemController@syn_item_id');
         get('items/restore_item/{order_id}/{item_id}', 'ItemController@restore_item_id');
         get('items/child_sku/{item_id}', 'ItemController@refreshChildSku');
 
@@ -376,9 +405,11 @@ Route::group([ 'middleware' => [ 'auth' ] ], function () {
         get('ship_order/item_tracking', 'ShippingController@manualShip');
         post('ship_order/returned', 'ShippingController@shipmentReturned');
         post('ship_order/ship_items', 'ShippingController@shipItems');
+        post('ship_order/compare-price', 'ShippingController@comparePrice');
         get('ship_order/void/{shipment_id}/{order_5p}', 'ShippingController@void');
 
         //shipper
+        get('shipping/ship_final', 'ShippingController@shipFinal');
         post('shipping/ship_items', 'ShippingController@shipItems');
         get('shipping', 'ShippingController@index')->name('shipShow');
         post('shipping', 'ShippingController@index');
@@ -388,6 +419,7 @@ Route::group([ 'middleware' => [ 'auth' ] ], function () {
         get('shipping/qc_station', 'QcController@index');
         get('shipping/qc_list', 'QcController@showStation');
         post('shipping/qc_scanIn', 'QcController@scanIn');
+        get('shipping/open_batch', 'QcController@scanIn')->name('openBatch');
         get('shipping/qc_redirect', 'QcController@scanIn');
         get('shipping/qc_batch', 'QcController@showBatch')->name('qcShow');
         post('shipping/qc_order', 'QcController@showOrder');
@@ -454,12 +486,13 @@ Route::group([ 'middleware' => [ 'auth' ] ], function () {
 
         post('transfer/export/qb', 'StoreController@qbExport');
         post('transfer/export/qbcsv', 'StoreController@qbCsvExport');
+        post('transfer/export/qb/vendor', 'StoreController@vendorExport');
 
     });
 });
 
 // guest middleware enabled controller
-Route::group([ 'middleware' => [ 'guest' ] ], function () {
+Route::group(['middleware' => ['guest']], function () {
     // get('login-shanto', 'AuthenticationController@getShanto');
     get('login', 'AuthenticationController@getLogin');
     get('login2', 'AuthenticationController@getLogin2');
@@ -472,12 +505,12 @@ Route::group([ 'middleware' => [ 'guest' ] ], function () {
 // 	return redirect(url('/'));
 // });
 
-Route::group([ 'prefix' => 'auth' ], function () {
+Route::group(['prefix' => 'auth'], function () {
     get('login', 'AuthenticationController@getLogin');
     get('login2', 'AuthenticationController@getLogin2');
     get('logout', 'AuthenticationController@getLogout');
 });
 
 Event::listen('illuminate.query', function ($q) {
-    #Log::info($q);
+//    Log::info($q);
 });

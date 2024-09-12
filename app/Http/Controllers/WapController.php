@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use EasyPost\EasyPost;
+use EasyPost\Shipment;
+use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 
 use App\Http\Requests;
@@ -29,6 +32,9 @@ class WapController extends Controller
             $end_date = NULL;
             
             $bins = Wap::with('order.shippable_items', 'order.store', 'order.items')
+                    ->whereHas('order', function ($q) {
+                        $q->where('order_status', '!=', 6);
+                    })
                     ->whereHas('order.store', function ($q){
                         $q->where('permit_users', 'like', "%".auth()->user()->id ."%")
                             ->where('is_deleted', '0')
@@ -49,11 +55,15 @@ class WapController extends Controller
                         ->where('orders.order_date', '<', $end_date)
                         ->whereNotNull('wap.order_id')
                         ->selectRaw('wap.id')
+                        ->where('order_status', '!=', 6)
                         ->get()
                         ->pluck('id')
                         ->toArray(); 
             
             $bins = Wap::with('order.shippable_items', 'order.items')
+                        ->whereHas('order', function ($q) {
+                            $q->where('order_status', '!=', 6);
+                        })
                         ->whereIn('wap.id', $bin_list)
                         ->select('wap.*', \DB::raw('(SELECT MAX(created_at) FROM wap_items WHERE wap_items.bin_id = wap.id ) as last,
                                                     (SELECT COUNT(*) FROM wap_items WHERE wap_items.bin_id = wap.id ) as item_count'))
@@ -66,6 +76,8 @@ class WapController extends Controller
         $statuses = Order::statuses();
         
         $stores = Store::list('%', '%', 'none');
+
+//        dd($bins);
 
 
         return view('wap.index', compact('bins', 'sorted_bins', 'end_date', 'statuses', 'stores'));
@@ -279,12 +291,117 @@ class WapController extends Controller
         
         return $bin;
     }
-    
-    
+
+
     public function showBin (Request $request)
     {
+//        return $request->all();
+        $rates = [];
+        if($request->has('action')) {
+            $ounces = $request->get('ounces');
+            $pounds = $request->get('pounds') ? $request->get('pounds') * 16 : 0 ;
+            $weight = $pounds + $request->get('ounces');
+            if(!$weight){
+                return redirect()->back()->withErrors(['error' => 'Please enter accurate amount of weight']);
+            }
+
+            $shipment['shipment']['to_address'] = [
+                'name' => $request->get('name'),
+                'street1' => $request->get('street1'),
+                'city' => $request->get('city'),
+                'state' => $request->get('state'),
+                'zip' => $request->get('zip'),
+                'country' => $request->get('country'),
+                'phone' => $request->get('phone'),
+                'email' => $request->get('email')
+            ];
+
+//            $shipment['shipment']['to_address'] = [
+//                                'name' => 'Dr. Steve Brule',
+//                                'street1' => '4109 BLACKTAIL CT',
+//                                'city' => 'CASTLE ROCK',
+//                                'state' => 'CO',
+//                                'zip' => '80109-7972',
+//                                'country' => 'US',
+//                                'phone' => '8573875756',
+//                                'email' => 'dr_steve_brule@gmail.com'
+//                            ];
+            if($request->has('submit') && $request->get('submit') == 'Compare price from NY'){
+                $shipment['shipment']['from_address'] = [
+                    "company" => 'monogramonline',
+                    "street1" => '481 Johnson AVE',
+                    "street2" => 'A',
+                    "city"    => 'Bohemia',
+                    "state"   => 'NY',
+                    "zip"     => '11716',
+                    "country" => 'US',
+                    "phone"   => '8563203210'
+                ];
+            } else {
+                $shipment['shipment']['from_address'] = [
+                    "company" => 'monogramonline',
+                    "street1" => '1891 McFarland Parkway',
+                    "street2" => 'A',
+                    "city"    => 'Alpharetta',
+                    "state"   => 'GA',
+                    "zip"     => '30005',
+                    "country" => 'US',
+                    "phone"   => '631-867-2344'
+                ];
+
+                // deprecated address
+//                $shipment['shipment']['from_address'] = [
+//                    "company" => 'monogramonline',
+//                    "street1" => '4050 NE 9th ave',
+//                    "street2" => 'A',
+//                    "city"    => 'Oakland Park',
+//                    "state"   => 'FL',
+//                    "zip"     => '33334',
+//                    "country" => 'US',
+//                    "phone"   => '631-867-2344'
+//                ];
+            }
+
+            $shipment['shipment']['parcel'] = [
+                                'length' => !empty($request->get('length')) ? $request->get('length') : '20',
+                                'width' => !empty($request->get('width')) ? $request->get('width') : '10',
+                                'height' => !empty($request->get('height')) ? $request->get('height') : '2',
+                                'weight' => $weight //onz
+                            ];
+//            dd($shipment);
+//            EasyPost::setApiKey('EZTKcf12d106bf264af5b027250ce8bcc958mjZpIf2maXevSVindGXYJw');
+//            $shipment = Shipment::create($shipment);
+//            $data = $shipment->get_rates();
+//            dd($data->rates);
+
+            $data = $this->comparePrice($shipment);
+            if(count($data['rates'])) {
+                $rates = $data['rates'];
+                usort($rates, function ($a, $b) {
+                    $rateA = floatval($a["rate"]);
+                    $rateB = floatval($b["rate"]);
+
+                    return $rateA - $rateB;
+                });
+//                dd($rates);
+            } else if (count($data['messages'])){
+                $msg = '';
+                foreach($data['messages'] as $message) {
+                    $msg .= $message['message'] . '<br>' ;
+                }
+                return redirect()->back()->withErrors(['error' => $msg]);
+            } else {
+                return redirect()->back()->withErrors(['error' => 'Unknown error on compare price']);
+            }
+
+
+        }
+
+
         $show_ship = null;
         $reminder = $request->get('reminder');
+        $weightLBS = 0;
+        $remainingOZS = 0;
         
         if ($request->has('label')) {
           
@@ -363,7 +480,7 @@ class WapController extends Controller
                   
           if (count($bin) == 0) {
             
-            $order = Order::with('items.batch.station', 'items.shipInfo', 'items.rejections.rejection_reason_info')
+            $order = Order::with('items.batch.station', 'items.shipInfo', 'items.rejections.rejection_reason_info', 'items.inventory_unit.inventory')
                         ->where('short_order', $order_id)
                         ->where('orders.is_deleted', '0')
                         ->first();
@@ -371,7 +488,7 @@ class WapController extends Controller
             if (count($order) > 0) {
               $order_id = $order->id;
               
-              $bin = Wap::with('items.batch', 'order.shippable_items')
+              $bin = Wap::with('items.batch', 'order.shippable_items', 'order.items.inventory_unit.inventory')
                       ->where('order_id', $order->id)
                       ->first();
               
@@ -403,8 +520,38 @@ class WapController extends Controller
           
           $thumbs[$item->id] = Sure3d::getThumb($item);
         }
+
+        /**
+         * get the OZS(ounces) weight of the inventory where item_status = wap
+         * then convert the weight to pounds and ounces
+         */
+        $weightOZS = 0;
+        foreach ($order->items as $item) {
+            if ($item->item_status == 'wap'){
+                $weight = 0;
+                $total = 0;
+                $weight = $item->inventory_unit->first()->inventory->sku_weight;
+                if($weight > 0){
+                    $total = $weight * $item->item_quantity;
+                    $weightOZS += $total;
+                }
+            }
+        }
+        if($weightOZS > 0){
+
+            $ouncesInOnePound = 16;
+
+            // Calculate pounds and remaining ounces
+            if($weightOZS < $ouncesInOnePound) {
+                $weightLBS = 0;
+                $remainingOZS = $weightOZS;
+            } else {
+                $weightLBS = floor($weightOZS / $ouncesInOnePound); // Whole pounds
+                $remainingOZS = $weightOZS % $ouncesInOnePound; // Remaining ounces
+            }
+        }
         
-        return view('wap.details', compact('bin', 'order', 'label', 'show_ship', 'reminder', 'item_options', 'thumbs'));
+        return view('wap.details', compact('bin', 'order', 'label', 'show_ship', 'reminder', 'item_options', 'thumbs', 'rates', 'weightLBS', 'remainingOZS'));
     }
     
     public function missingReport(Request $request)
@@ -474,6 +621,28 @@ class WapController extends Controller
                               
       return view('wap.missing_report', compact('batches', 'batchlist', 'missing_items', 'stationsList', 'statuses', 'stores', 'request', 
                                                   'bins', 'summary', 'wap_items', 'missing_items', 'sections'));
+    }
+
+    public function comparePrice($shipment)
+    {
+//        $EASYPOST_API_KEY = 'EZTKcf12d106bf264af5b027250ce8bcc958mjZpIf2maXevSVindGXYJw';
+        $EASYPOST_API_KEY = 'EZAKcf12d106bf264af5b027250ce8bcc958jg55lbapz7Z4MNQuc9Z9DA';
+        $client = new Client();
+
+        $response = $client->post('https://api.easypost.com/beta/rates', [
+            'auth' => [$EASYPOST_API_KEY, ''],
+            'headers' => ['Content-Type' => 'application/json'],
+            'json' => $shipment
+        ]);
+
+// Check the response status code and content
+        if ($response->getStatusCode() === 200) {
+            $responseData = json_decode($response->getBody()->getContents(), true);
+            return $responseData;
+            // Handle the response data as needed
+        } else {
+            // Handle the error response
+        }
     }
 
 }

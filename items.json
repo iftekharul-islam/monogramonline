@@ -1,0 +1,107 @@
+[
+    {
+        "id": 10363586052259,
+        "admin_graphql_api_id": "gid:\/\/shopify\/LineItem\/10363586052259",
+        "fulfillable_quantity": 1,
+        "fulfillment_service": "manual",
+        "fulfillment_status": null,
+        "gift_card": false,
+        "grams": 31,
+        "name": "Photo Personalized Face Mask | Upload Your Photo, Logo or Any Design - 5.25\" x 7.5\" \/ None",
+        "origin_location": {
+            "id": 2313358868643,
+            "country_code": "US",
+            "province_code": "NY",
+            "name": "Monogram Online",
+            "address1": "575 Underhill Blvd.",
+            "address2": "STE 325",
+            "city": "Syosset",
+            "zip": "11791"
+        },
+        "price": "9.99",
+        "price_set": {
+            "shop_money": {
+                "amount": "9.99",
+                "currency_code": "USD"
+            },
+            "presentment_money": {
+                "amount": "9.99",
+                "currency_code": "USD"
+            }
+        },
+        "product_exists": true,
+        "product_id": 4891848048773,
+        "properties": [
+            {
+                "name": "Upload Image",
+                "value": "https:\/\/cdn.shopify.com\/s\/files\/1\/0304\/9947\/1493\/uploads\/729bed3a1b34c6adfead0f45b4898d26.jpeg?format=jpeg&jpeg"
+            },
+            {
+                "name": "Preview",
+                "value": "https:\/\/cdn.shopify.com\/s\/files\/1\/0304\/9947\/1493\/uploads\/9e6f743b089be3300095a85ae0d4f028.png?format=png&png"
+            },
+            {
+                "name": "_pplr_preview",
+                "value": "Preview"
+            },
+            {
+                "name": "_Upload Image_crop",
+                "value": "https:\/\/cdn.shopify.com\/s\/files\/1\/0304\/9947\/1493\/uploads\/e27d7b68909e195ae7caa885db93863c.jpeg?format=jpeg&jpeg"
+            }
+        ],
+        "quantity": 1,
+        "requires_shipping": true,
+        "sku": "SB11351-Photo",
+        "taxable": true,
+        "title": "Photo Personalized Face Mask | Upload Your Photo, Logo or Any Design",
+        "total_discount": "0.00",
+        "total_discount_set": {
+            "shop_money": {
+                "amount": "0.00",
+                "currency_code": "USD"
+            },
+            "presentment_money": {
+                "amount": "0.00",
+                "currency_code": "USD"
+            }
+        },
+        "variant_id": 35663077376163,
+        "variant_inventory_management": "shopify",
+        "variant_title": "5.25\" x 7.5\" \/ None",
+        "vendor": "MonogramOnline",
+        "tax_lines": [
+            {
+                "price": "0.40",
+                "price_set": {
+                    "shop_money": {
+                        "amount": "0.40",
+                        "currency_code": "USD"
+                    },
+                    "presentment_money": {
+                        "amount": "0.40",
+                        "currency_code": "USD"
+                    }
+                },
+                "rate": 0.04,
+                "title": "Georgia State Tax"
+            },
+            {
+                "price": "0.20",
+                "price_set": {
+                    "shop_money": {
+                        "amount": "0.20",
+                        "currency_code": "USD"
+                    },
+                    "presentment_money": {
+                        "amount": "0.20",
+                        "currency_code": "USD"
+                    }
+                },
+                "rate": 0.02,
+                "title": "Gwinnett County Tax"
+            }
+        ],
+        "duties": [],
+        "discount_allocations": []
+    }
+]

@@ -150,7 +150,7 @@ class Design extends Model
       $templates = array_diff(scandir(self::$template_dir), array('..', '.'));
     } catch (\Exception $e) {
       Log::error('getTemplates: Error Accessing File ' . $e->getMessage());
-      return $false;
+      return false;
     }
     
     return $templates;

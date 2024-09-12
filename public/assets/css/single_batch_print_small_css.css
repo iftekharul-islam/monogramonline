@@ -1,0 +1,379 @@
+/* CSS Document */
+html {
+height:100.1%;
+}
+
+body,td,th {
+	font-family: Verdana, Arial, Helvetica, sans-serif;
+	font-size: 8px;
+	color: #000000; /*#686869; #2A7D97;*/
+	margin-top: 0px;
+}
+
+
+.tds {
+    font-family: Verdana, Arial, Helvetica, sans-serif;
+	font-size: 8px;
+	color: #ff8001;
+}
+
+
+h2 {
+    font-family: Verdana, Arial, Helvetica, sans-serif;
+	font-size: 8px;
+	color: #686869;; /*#2A7D97;*/
+	font-weight:bold;
+}
+
+body {
+	background-color: #ffffff;
+	/*background-color: #73e3e5;*/
+}
+a:link {
+	text-decoration: none;
+	color: #000000; /*#686869; #2A7D97;*/
+}
+a:visited {
+	text-decoration: none;
+	color: #000000; /*#686869; #2A7D97;*/
+}
+a:hover {
+	text-decoration: underline;
+}
+a:active {
+	text-decoration: none;
+}
+
+p {
+line-height:8px;
+};
+
+
+.content {
+	font-family: Verdana, Arial, Helvetica, sans-serif;
+	font-size: 8px;
+	color: #686869;; /*#2a7d97;*/
+	line-height:12px;
+}
+.contentW {
+	font-family: Verdana, Arial, Helvetica, sans-serif;
+	font-size: 8px;
+	color:#FFFFFF;
+	font-weight:bold;
+}
+.contentB {
+	font-family: Verdana, Arial, Helvetica, sans-serif;
+	font-size: 8px;
+	font-weight:bold;
+	color: #686869;; /*#2a7d97;*/
+}
+
+.hptext {
+    font-family: Verdana, Arial, Helvetica, sans-serif;
+	font-size: 8px;
+	color: #ff8001;
+	line-height:12px;
+}
+
+.hpred {
+    font-family: Verdana, Arial, Helvetica, sans-serif;
+	font-size: 8px;
+	color: #e64646; /*#FF0000;*/
+	line-height:12px;
+}
+
+.hpgreen {
+    font-family: Verdana, Arial, Helvetica, sans-serif;
+	font-size: 8px;
+	color: #0dc841; /*#00FF00;*/
+	line-height:12px;
+}
+
+
+.contentS {
+	font-family: Verdana, Arial, Helvetica, sans-serif;
+	font-size: 8px;
+	color: #686869;; /*#2a7d97;*/
+	/*font-weight:bold;*/
+}
+.contentSW {
+	font-family: Verdana, Arial, Helvetica, sans-serif;
+	font-size: 8px;
+	color: #ffffff;
+	/*font-weight:bold;*/
+}
+
+div#listImage {
+ /*display: block; */
+ position:absolute;
+ top:220px;
+ width: 800px; 
+ height:300px; 
+ border: 1px solid #FFFFFF; 
+ padding: 5px 5px; 
+ text-decoration: none; 
+ /*font-weight: 900; */
+ border-bottom: none;
+ z-index:99;
+ /*visibility:hidden;*/
+}
+
+div#listDesc {
+ /*display: block; */
+ position:absolute;
+ top:220px;
+ width: 800px; 
+ height:300px; 
+ border: 1px solid #FFFFFF; 
+ padding: 5px 5px; 
+ text-decoration: none; 
+ /*font-weight: 900; */
+ border-bottom: none;
+ visibility:hidden;
+ z-index:90;
+ background-color:#FFFFFF;
+}
+
+div#listCategory {
+ /*display: block; */
+ position:absolute;
+ top:220px;
+ /*width: 800px; */
+ height:320px; 
+ border: 1px solid #FFFFFF; 
+ padding: 5px 5px; 
+ text-decoration: none; 
+ /*font-weight: 900; */
+ background-color:#FFFFFF;
+ border-bottom: none;
+ visibility:hidden;
+ overflow: auto;
+ z-index:99;
+}
+
+div#listParam {
+ /*display: block; */
+ position:absolute;
+ top:220px;
+ width: 800px; 
+ height:300px; 
+ border: 1px solid #FFFFFF; 
+ padding: 5px 5px; 
+ text-decoration: none; 
+ /*font-weight: 900; */
+ border-bottom: none;
+ visibility:hidden;
+ z-index:99;
+}
+
+div#listOption {
+ /*display: block; */
+ position:absolute;
+ top:220px;
+ width: 800px; 
+ height:300px; 
+ border: 1px solid #FFFFFF; 
+ padding: 5px 5px; 
+ text-decoration: none; 
+ /*font-weight: 900; */
+ border-bottom: none;
+ visibility:hidden;
+ z-index:99;
+}
+
+div#listSub {
+ /*display: block; */
+ position:absolute;
+ top:550px;
+ width: 800px; 
+ height:300px; 
+ border: 1px solid #FFFFFF; 
+ padding: 5px 5px; 
+ text-decoration: none; 
+ /*font-weight: 900; */
+ border-bottom: none;
+ z-index:99;
+ /*visibility:hidden;*/
+}
+
+/* setup screen */
+
+div#listInfo {
+ /*display: block; */
+ position:absolute;
+ top:120px;
+ width: 800px; 
+ height:300px; 
+ border: 1px solid #FFFFFF; 
+ padding: 5px 5px; 
+ text-decoration: none; 
+ /*font-weight: 900; */
+ border-bottom: none;
+ z-index:99;
+ /*visibility:hidden;*/
+}
+
+div#listDescS {
+ /*display: block; */
+ position:absolute;
+ top:120px;
+ width: 800px; 
+ height:300px; 
+ border: 1px solid #FFFFFF; 
+ padding: 5px 5px; 
+ text-decoration: none; 
+ /*font-weight: 900; */
+ border-bottom: none;
+ visibility:hidden;
+ z-index:90;
+ background-color:#FFFFFF;
+}
+
+div#listCategoryS {
+ /*display: block; */
+ position:absolute;
+ top:120px;
+ /*width: 800px; */
+ height:320px; 
+ border: 1px solid #FFFFFF; 
+ padding: 5px 5px; 
+ text-decoration: none; 
+ /*font-weight: 900; */
+ background-color:#FFFFFF;
+ border-bottom: none;
+ visibility:hidden;
+ overflow: auto;
+ z-index:99;
+}
+
+div#listParamS {
+ /*display: block; */
+ position:absolute;
+ top:120px;
+ width: 800px; 
+ height:300px; 
+ border: 1px solid #FFFFFF; 
+ padding: 5px 5px; 
+ text-decoration: none; 
+ /*font-weight: 900; */
+ border-bottom: none;
+ visibility:hidden;
+ z-index:99;
+}
+
+div#listSubS {
+ /*display: block; */
+ position:absolute;
+ top:550px;
+ width: 800px; 
+ height:300px; 
+ border: 1px solid #FFFFFF; 
+ padding: 5px 5px; 
+ text-decoration: none; 
+ /*font-weight: 900; */
+ border-bottom: none;
+ z-index:99;
+ /*visibility:hidden;*/
+}
+
+
+.cat {
+ float:left;
+ width: 160px;
+ z-index:-1;
+ padding-right:8px;
+}
+
+/* forms */
+
+ label
+{
+width: 15em;
+float: left;
+text-align: right;
+margin-right: 0.5em;
+display: block
+}
+
+.submit input
+{
+color: #000;
+background: #ffa20f;
+border: 2px outset #d7b9c9
+}
+
+/* report generator */
+.R_HEADER {
+font-family: "verdana";
+font-size: 8px;
+color: #0466A6;
+background: #FFFFFF;
+font-weight:bold;
+}
+
+.R_FOOTER {
+font-family: "verdana";
+font-size: 8px;
+color: #0466A6;
+background: #FFFFFF;
+border-bottom:1px solid #0466A6;
+}
+
+.P_FOOTER {
+font-family: "verdana";
+font-size: 8px;
+color: #0466A6;
+background: #FFFFFF;
+font-weight:bold;
+/*border-top:1px solid #0466A6;*/
+}
+
+.R_FIELDS {
+font-family: "verdana";
+font-size: 8px;
+color: #000000;
+background: #FEFEFE;
+}
+.R_BOLD {
+font-weight: bold;
+}
+
+.ODD {
+font-family: "verdana";
+font-size: 8px;
+color: #0466AF;
+background: #F8FEFE;
+}
+
+.EVEN {
+font-family: "verdana";
+font-size: 8px;
+color: #0466AF;
+background: #ECFCFC;
+}
+
+.ps_top {
+ color:#3690A0; 
+ font-weight:bold; 
+ font-size:8px;
+}
+
+.ps_top  a {
+ color:#3690A0; 
+ font-weight:bold; 
+ font-size:8px;
+}
+
+#simpleTooltip { padding: 7px; border: 1px solid #A6A7AB; background: #F2F3F5; }
+
+
+.blink {
+ text-decoration:blink; 
+ font-weight:bold; 
+ color:#FF0000;
+ animation: blinker 3s linear infinite;
+} 
+
+@keyframes blinker {  
+  50% { opacity: 0.0; }
+}

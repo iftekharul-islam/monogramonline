@@ -161,6 +161,9 @@
 							@if ($item->order)
 								Date: {{ substr($item->order->order_date, 0, 10) }}
 							@endif
+							@if ($item->order->purchase_order != NULL)
+								<strong>PO: {{ $item->order->purchase_order }}</strong>
+							@endif
 						</td>						
 						<td width="70">
 								<img src = "{{$item->item_thumb}}" width = "70" height = "70" />

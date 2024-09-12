@@ -13,6 +13,21 @@ use App\Http\Controllers\Controller;
 
 class BatchRouteController extends Controller
 {
+
+    protected $printers = [
+        '' => 'Select Printer',
+        'SOFT-1' => 'SOFT-1',
+        'SOFT-2' => 'SOFT-2 (Vendor-D)',
+        'SOFT-3' => 'SOFT-3',
+        'SOFT-4' => 'SOFT-4',
+        'SOFT-5' => 'SOFT-5',
+        'SOFT-6' => 'SOFT-6',
+        'SOFT-7' => 'SOFT-7',
+        'SOFT-8' => 'SOFT-8',
+        'HARD-1' => 'HARD-1',
+        'HARD-2' => 'HARD-2',
+        'HARD-3' => 'HARD-3'
+    ];
 	public function index (Request $request)
 	{
 		$count = 1;
@@ -29,7 +44,9 @@ class BatchRouteController extends Controller
 							 ->pluck('template_name', 'id')
 							 ->prepend('Select template', '');
 
-		return view('batch_routes.index', compact('batch_routes', 'count', 'stations', 'templates'));
+        $printers = $this->printers;
+
+		return view('batch_routes.index', compact('batch_routes', 'count', 'stations', 'templates', 'printers'));
 	}
 
 	public function create ()
@@ -42,12 +59,14 @@ class BatchRouteController extends Controller
 
 	public function store (BatchRouteCreateRequest $request)
 	{
-		#return $request->all();
 		$batch_route = new BatchRoute();
 		$batch_route->batch_code = $request->get('batch_code');
 		$batch_route->batch_route_name = $request->get('batch_route_name');
 		$batch_route->batch_max_units = $request->get('batch_max_units');
 		$batch_route->batch_options = $request->get('batch_options');
+        $batch_route->scale = $request->get('scale') ?? 100;
+        $batch_route->printer = $request->get('printer');
+        $batch_route->is_auto = $request->get('is_auto');
 		$batch_route->save();
 		$batch_route->stations()
 					->attach($request->get('batch_route_order'));
@@ -68,8 +87,8 @@ class BatchRouteController extends Controller
 
 	public function update (BatchRouteUpdateRequest $request, $id)
 	{
-		#return $request->all();
-		$batch_route = BatchRoute::find($id);
+//        dd($request->all());
+        $batch_route = BatchRoute::find($id);
 		$batch_route->batch_code = $request->get('batch_code');
 		$batch_route->batch_route_name = $request->get('batch_route_name');
 		$batch_route->summary_msg_1 = $request->get('summary_header_1');
@@ -77,10 +96,16 @@ class BatchRouteController extends Controller
 		$batch_route->batch_max_units = $request->get('batch_max_units');
 		$batch_route->export_template = $request->get('batch_export_template');
         $batch_route->nesting = $request->get('batch_nesting');
+        $batch_route->scale = $request->get('scale') ?? 100;
+        $batch_route->width = $request->get('width');
+        $batch_route->height = $request->get('height');
+        $batch_route->printer = $request->get('printer');
+        $batch_route->is_auto = $request->get('auto_printer') == 'true' ? 1 : 0;
 		$batch_route->csv_extension = $request->get('csv_extension');
 		$batch_route->export_dir = trim( $request->get('export_dir'), '/\\ ');
 		$batch_route->graphic_dir = trim( $request->get('graphic_dir'), '/\\ ');
 		$batch_route->batch_options = $request->get('batch_options');
+//        dd($batch_route);
 		$batch_route->save();
 
 		$updateStationText = preg_replace('/\s+/', '', $request->get('batch_stations'));

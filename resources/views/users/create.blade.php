@@ -49,6 +49,15 @@
 							{!! Form::password('password', ['id' => 'password','class' => 'form-control', 'autocomplete' => "new-password"]) !!}
 						</div>
 					</div>
+					<div class = "form-group">
+						{!!Form::label('vendor','Vendor :',['class'=>'control-label col-xs-2'])!!}
+						<div class = "col-xs-5">
+							<?php
+								$vendors = ['' => 'Select vendor'] + $vendors;
+							?>
+							{!! Form::select('vendor', $vendors, null, ['class' => 'form-control']) !!}
+						</div>
+					</div>
 					<div class = 'form-group'>
 						{!!Form::label('remote','Remote Access :',['class'=>'control-label col-xs-2'])!!}
 						<div class = "col-xs-5">
