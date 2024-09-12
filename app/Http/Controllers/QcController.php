@@ -469,9 +469,7 @@ class QcController extends Controller
 
     public function comparePrice($shipment)
     {
-//        $EASYPOST_API_KEY = 'EZTKcf12d106bf264af5b027250ce8bcc958mjZpIf2maXevSVindGXYJw';
-        //TODO::need to make active
-//        $EASYPOST_API_KEY = 'EZAKcf12d106bf264af5b027250ce8bcc958jg55lbapz7Z4MNQuc9Z9DA';
+        $EASYPOST_API_KEY = env('EASYPOST_API_KEY');
         $client = new Client();
 
         $response = $client->post('https://api.easypost.com/beta/rates', [

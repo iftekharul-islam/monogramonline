@@ -2885,7 +2885,7 @@ class OrderController extends Controller
     {
         // Set variables for our request
         $shop = "monogramonline"; #$_GET['shop'];
-        $api_key = "8d31a3f2242c3b3d1370d6cba9442b47";#previous --- //"b1f4196ff20279e3747ad1c048e7d0d4";
+        $api_key = env('SHOPIFY_API_KEY');#previous --- //"b1f4196ff20279e3747ad1c048e7d0d4";
 //        $scopes = "read_orders,write_products";
         $scopes = "read_orders,write_orders,read_products,write_products,read_customers,write_customers,read_inventory,write_inventory,read_fulfillments,write_fulfillments,read_assigned_fulfillment_orders,write_assigned_fulfillment_orders,read_merchant_managed_fulfillment_orders,write_merchant_managed_fulfillment_orders,read_third_party_fulfillment_orders,write_third_party_fulfillment_orders,read_shipping,write_shipping,read_checkouts,write_checkouts,read_price_rules,write_price_rules,read_discounts,write_discounts,read_product_listings,read_locations";
 //        $redirect_uri = "http://dev.monogramonline.com/generate_shopify_token"; #"http://localhost/generate_token.php";
