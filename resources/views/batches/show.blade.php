@@ -46,6 +46,7 @@
     @include('includes.error_div')
 
     <h3 class="page-header">
+{{--        {{ dd($batch) }}--}}
         Batch: {{ $batch_number }}
         @if ($batch->store)
             ({{ $batch->store->store_name }})
@@ -130,6 +131,9 @@
                            target="_blank">{{ $batch->route->batch_code }}</a>
                         / {{ $batch->route->batch_route_name }} =>
                         {!! $stations !!}
+{{--                        //TODO :: need to implement--}}
+{{--                        <a href="{{ url(sprintf('batches/details-move/%s/%s', 'prev', $batch->batch_number)) }}" class="badge btn-primary"> < </a>--}}
+{{--                        <a href="{{ url(sprintf('batches/details-move/%s/%s', 'next', $batch->batch_number)) }}" class="badge btn-primary"> > </a>--}}
                     </div>
                     <div class="col-xs-2">
                         @if ($batch->route->template)
@@ -182,7 +186,7 @@
                     Export:
                 </div>
                 <div class="col-xs-3">
-                    @if ($batch->export_date != NULL)
+                    @if ($batch->export_date != null)
                         @if ($batch->export_count == 1)
                             Exported {{ $batch->export_count }} time
                             {{ $batch->export_date }}
@@ -207,7 +211,7 @@
                 <div class="col-xs-1" style="font-weight: bold;">
                     Summary:
                 </div>
-                @if ($batch->summary_date != NULL)
+                @if ($batch->summary_date != null)
                     <div class="col-xs-3">
                         Printed {{ $batch->summary_date }}
                     </div>
@@ -227,14 +231,66 @@
                 <div class="col-xs-1" style="font-weight: bold;">
                     Graphic:
                 </div>
-                <div class="col-xs-3">
+                <div class="col-xs-2">
                     {{ $batch->graphic_found }}
                     @if($batch->graphic_found == 'Found')
                         :
-                        <a href="{{ url(sprintf('batches/view_graphic?batch_number=%s',$batch->batch_number)) }}"
-                           target="_blank">View Graphics</a>
+                        <a href="#" data-toggle="modal" data-target="#myModal">
+                            View Graphics
+                        </a>
+                        <!-- The Modal -->
+                        <div class="modal fade" id="myModal" role="dialog">
+                            <div class="modal-dialog">
+
+                                <!-- Modal content-->
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                    </div>
+                                    <div class="modal-body">
+                                        @foreach($batch->items as $item)
+                                            @if($item->item_thumb)
+                                                <img src="{{ $item->item_thumb }}" alt="Image in Modal" class="img-responsive">
+                                            @elseif($item->product)
+                                                <img src="{{ $item->product->product_thumb }}" alt="Image in Modal" class="img-responsive">
+                                            @endif
+                                        @endforeach
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
                     @endif
                 </div>
+                @if(isset($batch->items))
+                    <?php
+                        $item = $batch->items->first();
+                    ?>
+                    <div class="col-xs-3">
+                        {!! Form::open(['url' => '/reject_and_archive', 'method' => 'get']) !!}
+                        {!! Form::hidden('item_id', $item->id) !!}
+                        {!! Form::hidden('scrap', 0) !!}
+                        {!! Form::hidden('graphic_status', 1) !!}
+                        {!! Form::hidden('rejection_reason', 117) !!}
+                        {!! Form::hidden('rejection_message', '') !!}
+                        {!! Form::hidden('reject_qty', $item->item_quantity) !!}
+                        {!! Form::hidden('origin', 'BD') !!}
+                        {!! Form::hidden('title', 'Batch view') !!}
+                        {!! Form::hidden('name', $batch->batch_number) !!}
+                        @if ($batch->route)
+
+                            {!! Form::hidden('directory', $batch->route->graphic_dir) !!}
+                        @endif
+                        @if ($batch->section_id == 6)
+                            {!! Form::hidden('goto', 'print_sublimation') !!}
+                        @endif
+                        {!! Form::submit('Reject and archive' , ['class' => 'btn btn-sm btn-danger']) !!}
+                        {!! Form::close() !!}
+                    </div>
+                @endif
                 @if ($batch->to_printer != '0')
                     <div class="col-xs-1" style="font-weight: bold;">
                         Printed:
@@ -300,27 +356,56 @@
                                 <br>
                                 {{ $item->order->store->store_name }}
                                 <br>
-                                Re Download Graphic: <a href="{{url(sprintf('graphics/download_sure3d_by_item_id?item_id=%s', $item->id))}}"
-                                          target="_blank">{{ $item->id }}</a>
-
-                                @if ($batch->station->type == 'G')
+                                    <?php
+                                    $itemOption = json_decode($item->item_option, true);
+                                    ?>
+                                {{--only show when item is in batch with section name Sublimation--}}
+                                @if(isset($batch->section) && $batch->section->section_name == 'Sublimation')
+                                    Re Download Graphic: <a
+                                            href="{{url(sprintf('graphics/download_sure3d_by_item_id?item_id=%s', $item->id))}}"
+                                            target="_blank">{{ $item->id }}</a>
                                     <br>
-                                    {!! Form::button('Upload ' . $item->id . ' Graphic', ['class' => 'btn btn-success upload-btn', 'id' => $item->id, 'data-batch_number' => $item->batch_number]) !!}
-
-
-
-                                    @if(\App\Http\Controllers\ZakekeController::hasSure3D($item->child_sku, request()))
-                                    {!! Form::button('Zakeke/Link Fetch', ['class' => 'btn btn-primary', 'id' => "download_upload_zakeke-$item->id", "item-id" => $item->id, "item-pws" => isset(json_decode($item->item_option, true)['PWS Zakeke']), 'data-batch_number' => $item->batch_number, "order_id" => $item->order->short_order]) !!}
-                                    @endif
-                                    {{--                                    {!! Form::button('Zakeke Fetch', ['class' => 'btn btn-warning', 'id' => "download_upload_zakeke-$item->id", "item-id" => $item->id, 'data-batch_number' => $item->batch_number, "order_id" => $item->order->short_order]) !!}--}}
-{{--                                    {!! Form::button('Zakeke Fetch Pws', ['class' => 'btn btn-warning', 'id' => "download_upload_zakeke-2-$item->id", "item-id" => $item->id, 'data-batch_number' => $item->batch_number, "order_id" => $item->order->short_order , "style" => "background-color: pink"]) !!}--}}
-{{--                               --}}
                                 @endif
-
+                                    {!! Form::button('Upload ' . $item->id . ' Graphic', ['class' => 'btn btn-success upload-btn', 'id' => $item->id, 'data-batch_number' => $item->batch_number]) !!}
+                                @if(isset($batch->section) && $batch->section->section_name == 'Sublimation')
+                                    @if ($batch->station->type == 'G')
+                                        @if($item->store->store_name == "Shopify - MonogramOnline.com")
+                                            <form action="{{ url('shopify-pdf-fetch/'.$item->order->short_order.'/'. $item->item_id . '/' . $batch_number) }}" method="get">
+                                                <button type="submit" class="btn btn-primary">Shopify Zakeke/Link Fetch</button>
+                                            </form>
+                                        @elseif(\App\Http\Controllers\ZakekeController::hasSure3D($item->child_sku, request()))
+                                            @if(isset($itemOption['PWS Zakeke']))
+                                                {!! Form::button('Zakeke/Link Fetch', ['class' => 'btn btn-primary', 'id' => "download_upload_zakeke-$item->id", "item-id" => $item->id, "item-pws" => 1, 'data-batch_number' => $item->batch_number, "order_id" => $item->order->short_order]) !!}
+                                            @else
+                                                {!! Form::button('Zakeke/Link Fetch', ['class' => 'btn btn-primary', 'id' => "download_upload_zakeke-$item->id", "item-id" => $item->id, "item-pws" => 0, 'data-batch_number' => $item->batch_number, "order_id" => $item->order->short_order]) !!}
+                                            @endif
+                                        @endif
+                                    @endif
+                                    <br>
+                                    <a style = 'color:white; margin-top:6px' class="btn btn-info"
+                                       href = "{{ url('update-shopify-thumb/'. $item->order->short_order .'/'. $item->item_id) }}">Update Thumb</a>
+                                @endif
 
                             </td>
                             <script type="application/javascript">
 
+                                $("#shopify-download_upload_zakeke-{{$item->id}}").click(function () {
+
+                                    var itemId = $("#download_upload_zakeke-{{$item->id}}").attr("item-id");
+                                    var batchNumber = $("#download_upload_zakeke-{{$item->id}}").attr("data-batch_number");
+                                    var short_order = "{{ $item->order->short_order }}";
+                                    var itemIndex = {{$index}}
+
+                                        var
+                                    pws = $("#download_upload_zakeke-{{$item->id}}").attr("item-pws")
+                                    console.log(pws);
+                                    if (pws == 1) {
+                                        pws = "&pws=true"
+                                    }else{
+                                        pws = "";
+                                    }
+                                    window.location.href = "/lazy/upload-download/zakeke/" + itemId + "?batch_number=" + batchNumber + "&item_id=" + itemId + "&short_order=" + short_order + "&fetch_link_from_zakeke_cli=true&item_index=" + itemIndex + pws;
+                                });
                                 $("#download_upload_zakeke-{{$item->id}}").click(function () {
 
                                     var itemId = $("#download_upload_zakeke-{{$item->id}}").attr("item-id");
@@ -328,44 +413,125 @@
                                     var short_order = "{{ $item->order->short_order }}";
                                     var itemIndex = {{$index}}
 
-                                    var pws = $("#download_upload_zakeke-{{$item->id}}").attr("item-pws")
-
-                                    if(typeof pws !== 'undefined' && pws !== false) {
+                                        var
+                                    pws = $("#download_upload_zakeke-{{$item->id}}").attr("item-pws")
+                                    console.log(pws);
+                                    if (pws == 1) {
                                         pws = "&pws=true"
+                                    }else{
+                                        pws = "";
                                     }
                                     window.location.href = "/lazy/upload-download/zakeke/" + itemId + "?batch_number=" + batchNumber + "&item_id=" + itemId + "&short_order=" + short_order + "&fetch_link_from_zakeke_cli=true&item_index=" + itemIndex + pws;
                                 });
 
-                                $("#download_upload_zakeke-2-{{$item->id}}").click(function () {
-
-                                    var itemId = $("#download_upload_zakeke-2-{{$item->id}}").attr("item-id");
-                                    var batchNumber = $("#download_upload_zakeke-2-{{$item->id}}").attr("data-batch_number");
-                                    var short_order = "{{ $item->order->short_order }}";
-                                    var itemIndex = {{$index}}
-
-                                    window.location.href = "/lazy/upload-download/zakeke/" + itemId + "?batch_number=" + batchNumber + "&item_id=" + itemId + "&short_order=" + short_order + "&fetch_link_from_zakeke_cli=&pws=true&item_index=" + itemIndex;
-                                });
                             </script>
                             <td>
                                 @setvar($thumb = \Monogram\Sure3d::getThumb($item))
                                 @if($thumb)
                                     <img src="{{ $thumb[0] }}" width="150" height="150">
-                            @endif
+                               @endif
                             <td>
                                 <a href="{{ $item->item_url }}" target="_blank">
                                     <img src="{{$item->item_thumb}}"
                                          @if($item->product)
-                                         onerror="{{ $item->product->product_thumb }}"
+                                             onerror="{{ $item->product->product_thumb }}"
                                          @endif
                                          width="150" height="150"/></a>
+
+                                <br>
+                                @if(isset($itemOption['Custom_EPS_download_link']))
+                                    <?php
+                                        $file = \Monogram\ImageHelper::getImageInfo($itemOption['Custom_EPS_download_link']);
+                                    ?>
+                                @endif
+
+
+                                @if(isset($file) && $file['status'])
+
+                                    <div style="margin: 0 auto; display: table">
+                                        <a href="{{ url('make-image-mirror/'. basename($itemOption['Custom_EPS_download_link']) . '/' . basename($item->item_thumb) ) }}" data-toggle="tooltip" class="btn btn-primary btn-sm" data-placement="top" title="Mirror the image" style="margin-right: 1px">
+                                            <span class="glyphicon glyphicon-transfer"></span>
+                                        </a>
+                                        <a href="{{ url('make-image-rotate/'. basename($itemOption['Custom_EPS_download_link']) . '/' . basename($item->item_thumb) ) }}" data-toggle="tooltip" class="btn btn-primary btn-sm" data-placement="top" title="90 degree rotate" style="margin-right: 1px">
+                                            <span class="glyphicon glyphicon-repeat"></span>
+                                        </a>
+                                        <a href="#" data-toggle="modal" data-target="#myModal2" class="btn btn-primary btn-sm" style="margin-right: 1px">
+                                            <span class="glyphicon glyphicon-scissors"></span>
+                                        </a>
+                                    </div>
+
+                                    <!-- The Modal -->
+                                    <div class="modal fade" id="myModal2" role="dialog">
+                                        <div class="modal-dialog modal-sm">
+
+                                            <!-- Modal content-->
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title">Image Resize by inch
+                                                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                                    </h5>
+                                                </div>
+                                                <form action="{{ url('make-image-resize') }}" method="POST">
+                                                {{ csrf_field() }}
+                                                    <input type="hidden" name="image" value="{{ basename($itemOption['Custom_EPS_download_link']) }}">
+                                                <div class="modal-body">
+                                                    <input type="number" class="form-control" placeholder="Enter Width by inch" name="width" aria-describedby="basic-addon1" required>
+                                                    <input type="number" class="form-control" placeholder="Enter Height by inch" name="height" aria-describedby="basic-addon1" required>
+                                                    <input type="number" class="form-control" placeholder="Enter DPI" name="dpi" aria-describedby="basic-addon1" required>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                                    <button type="submit" class="btn btn-primary">Submit</button>
+                                                </div>
+                                                </form>
+                                            </div>
+
+                                        </div>
+                                    </div>
+
+                                @endif
                             </td>
                             <td class="description">
                                 <a href="{{ url(sprintf("logistics/sku_list?search_for_first=%s&search_in_first=child_sku", $item->child_sku)) }}"
                                    target="_blank">{{$item->child_sku}}</a>
                                 <br>
+                                <span width="100">
+                                    Mirror:
+                                    @if(isset($item->parameter_option) && $item->parameter_option->mirror)
+                                        <span class="badge badge-primary">Yes</span>
+                                    @else
+                                        <span class="badge badge-danger">No</span>
+                                    @endif
+                                </span>
+
+                                <br>
+                                @if(isset($itemOption['Custom_EPS_download_link']))
+                                    <span width="100">
+
+                                        @if(isset($file) && $file['status'])
+                                            <span >Image Size </span>
+                                            <b>{{ $file['image_size'] }}</b>
+                                            <br>
+                                            <span >Image DPI </span>
+                                            <b>{{ $file['image_dpi'] }}</b>
+                                            <br>
+                                            <span >Image File Size </span>
+                                            <b>{{ $file['file_size'] }}</b>
+                                            <br>
+                                            <span >File Type </span>
+                                            <b>{{ $file['file_type'] }}</b>
+                                        @else
+                                            <b>{{ $file['message'] }}</b>
+                                        @endif
+                                    </span>
+
+                                    <br>
+                                @endif
                                 {{$item->item_description}}
                                 <br>
                                 Item# {{ $item->id }}
+                                <br>
+                                Item id: {{ $item->item_id }}
                                 <br>
                                 @if ($item->item_quantity == 1)
                                     QTY: {{ $item->item_quantity }}
@@ -387,10 +553,24 @@
 
                                     <div style="color: red;">
                                         TRK# {{ $item->tracking_number }}
+                                        @if($item->tracking_synced == 1)
+                                            <span data-toggle="tooltip" data-placement="top" title="Synced To Shopify" class="glyphicon glyphicon-ok-sign" style="color: green"></span>
+                                        @else
+                                            <span data-toggle="tooltip" data-placement="top" title="Unable to Synced Shopify: {{ $item->tracking_msg ?? 'Unknown reason' }}" class="glyphicon glyphicon-remove-sign" style="color: red"></span>
+                                        @endif
                                     </div>
                                 @endif
                             </td>
-                            <td>{!! Form::textarea('nothing', \Monogram\Helper::jsonTransformer($item->item_option), ['rows' => '6', 'cols' => '40', /*"style" => "border: none; width: 100%; -webkit-box-sizing: border-box; -moz-box-sizing: border-box; box-sizing: border-box;"*/]) !!}</td>
+                            <td>
+                                <div class="">
+                                    {!! Form::textarea('nothing', \Monogram\Helper::jsonTransformer($item->item_option), ['rows' => '6', 'cols' => '40', /*"style" => "border: none; width: 100%; -webkit-box-sizing: border-box; -moz-box-sizing: border-box; box-sizing: border-box;"*/]) !!}
+                                </div>
+                                @if(isset(json_decode($item->item_option, true)['Custom_EPS_download_link']))
+                                    <div class="">
+                                        <a href="{{ json_decode($item->item_option, true)['Custom_EPS_download_link'] }}" class="btn btn-sm"  target="_blank" style="background-color:#a020f0; color: #fff;">Download EPS Link</a>
+                                    </div>
+                                @endif
+                            </td>
                         </tr>
                         @if ($item->rejections)
                             @foreach ($item->rejections as $reject)
@@ -408,26 +588,26 @@
                             @endforeach
                         @endif
                     @endforeach
-                   <script type="application/javascript">
-                       function dataURLtoBlob(dataurl) {
-                           var arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1],
-                               bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
-                           while(n--){
-                               u8arr[n] = bstr.charCodeAt(n);
-                           }
-                           return new Blob([u8arr], {type:mime});
-                       }
+                    <script type="application/javascript">
+                        function dataURLtoBlob(dataurl) {
+                            var arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1],
+                                bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
+                            while (n--) {
+                                u8arr[n] = bstr.charCodeAt(n);
+                            }
+                            return new Blob([u8arr], {type: mime});
+                        }
 
-                       function toDataUrl(url, callback) {
-                           var xhr = new XMLHttpRequest();
-                           xhr.onload = function() {
-                               callback(xhr.response);
-                           };
-                           xhr.open('GET', url);
-                           xhr.responseType = 'blob';
-                           xhr.send();
-                       }
-                   </script>
+                        function toDataUrl(url, callback) {
+                            var xhr = new XMLHttpRequest();
+                            xhr.onload = function () {
+                                callback(xhr.response);
+                            };
+                            xhr.open('GET', url);
+                            xhr.responseType = 'blob';
+                            xhr.send();
+                        }
+                    </script>
                     </tbody>
                 </table>
             </div>
@@ -515,7 +695,7 @@
 
 <script type="text/javascript">
 
-    $( document ).ready(function() {
+    $(document).ready(function () {
 
         $(".upload-btn").on('click', function (e) {
                 var item_id = $(this).attr('id');
@@ -526,6 +706,7 @@
             }
         );
     });
+
     function createPopUp() {
         window.open('', 'PopUp', 'scrollbars=no,menubar=no,height=500,width=600,resizable=no,toolbar=no,status=no');
     }

@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
 use App\Item;
@@ -26,6 +27,8 @@ use App\Http\Controllers\GraphicsController;
 class RejectionController extends Controller
 {
 
+    public $archive = '/media/RDrive/archive/';
+    protected $remotArchiveUrl = "https://order.monogramonline.com/media/archive/";
     public function index (Request $request)
     {   
         $batch_array = array();
@@ -200,7 +203,9 @@ class RejectionController extends Controller
           } else if ($station_change == 'Q') { 
             $station_change = $batch->route->qc_stations->first()->id;
           }
-          
+
+//          dd($station_change);
+
           $batch->prev_station_id = $batch->station_id;
           $batch->station_id = $station_change;
           $batch->status = 'active';
@@ -272,105 +277,322 @@ class RejectionController extends Controller
               ->with('tab', 'rejects');
     }
 
-    
-    public function reject (Request $request) {     
-      
-      $origin = $request->get('origin');
-      
-      $rules = [
-        'item_id'           => 'required',
-        'reject_qty'        => 'required|integer|min:1',
-        'graphic_status'    => 'required',
-        'rejection_reason'  => 'required|exists:rejection_reasons,id',
-      ];
-      
-      $validation = Validator::make($request->all(), $rules);
-      
-      if ( $validation->fails() ) {
-        return redirect()->back()->withErrors($validation);
-      }
-      
-      $item = Item::with('inventoryunit')
-                    ->where('id', $request->get('item_id'))
-                    ->first();
-      
-      if ($item->item_status == 'rejected') {
-        return redirect()->back()->withErrors(['error' => 'Item Already Rejected']);
-      }
-      
-      $batch_number = $item->batch_number;
-      
-      if ($origin == 'QC') {
-        $batch = Batch::find($request->get('id'));
-        
-        if ($batch && $batch->batch_number != $batch_number) {
-          return redirect()->back()->withErrors(['error' => sprintf('Please scan user ID')]);
-        }
-      } elseif ($origin == 'SL') {
-        $tracking_number = $item->tracking_number;
-      }
+    public function rejectAndArchive(Request $request)
+    {
+        logger('Reject and Archive processing started..');
+        try {
+            $origin = $request->get('origin');
 
-      $result = $this->itemReject($item, $request->get('reject_qty'), $request->get('graphic_status'), $request->get('rejection_reason'),
-                                              $request->get('rejection_message'), $request->get('title'), $request->get('scrap'));
-      
-      //send first reprint to production
-      if ($request->get('graphic_status') == '1') {
-        
-        $count = Rejection::where('item_id', $result['reject_id'])->count();
-        
-        if ($count == 1) {
-          $this->moveStation($result['new_batch_number']);
-          
-          $msg = Batch::export($result['new_batch_number'], '0');
-          
-          if (isset($msg['error'])) {
-            Batch::note( $result['new_batch_number'], '', 0, $msg['error']);
-          }
+            $rules = [
+                'item_id'           => 'required',
+                'reject_qty'        => 'required|integer|min:1',
+                'graphic_status'    => 'required',
+                'rejection_reason'  => 'required|exists:rejection_reasons,id',
+            ];
+
+            $validation = Validator::make($request->all(), $rules);
+
+            if ( $validation->fails() ) {
+                return redirect()->back()->withErrors($validation);
+            }
+
+            $item = Item::with('inventoryunit')
+                ->where('id', $request->get('item_id'))
+                ->first();
+            $item->vendor = null;
+
+            if ($item->item_status == 'rejected') {
+                return redirect()->back()->withErrors(['error' => 'Item Already Rejected']);
+            }
+
+            if($request->rejection_reason == 117 && $request->graphic_status == '1') {
+                $batch = Batch::with('route.stations_list')->where('batch_number', $item->batch_number)
+                    ->first();
+
+                $option = json_decode($item->item_option);
+                $image_name = basename($option->Custom_EPS_download_link);
+
+
+                // Use parse_url to get the path
+                $path = parse_url($image_name, PHP_URL_PATH);
+
+                // Use pathinfo to get the filename
+                $filename = pathinfo($path, PATHINFO_FILENAME);
+                $fileExt = pathinfo($path, PATHINFO_EXTENSION);
+
+                $originalFilePath = $this->archive . $filename. '.' .$fileExt;
+                $newFilePath =  str_replace($filename, $item->batch_number, $originalFilePath);
+
+                if($originalFilePath == $newFilePath && file_exists($originalFilePath)){
+                    if(!empty($batch)){
+                        $batch->prev_station_id = $batch->station_id;
+                        $batch->station_id = 92; //Set Graphics done S-GRPH
+                        $batch->graphic_found = '1';
+                        $batch->save();
+
+                        $item->save();
+
+                        logger('now moving for re print graphic...');
+                        return redirect()->action('GraphicsController@reprintGraphic',[
+                            'name' => $request->get('name'),
+                            'directory' => $request->get('directory'),
+                            'goto' => $request->get('goto'),
+                        ]);
+
+//                        return redirect()->back()->withSuccess('Batch moved to Graphics done');
+                    } else {
+                        return redirect()->back()->withErrors(['error' => 'Batch not found']);
+                    }
+                } else if(file_exists($originalFilePath) && !file_exists($newFilePath)) {
+                    copy($originalFilePath, $newFilePath);
+                    unlink($originalFilePath);
+
+                    logger("Command successfully execute and changed the file : " . $newFilePath);
+
+                    $option->Custom_EPS_download_link = $this->remotArchiveUrl . $item->batch_number . '.' . $fileExt;
+                    $item->item_option = json_encode($option);
+                    $item->save();
+
+                    if(!empty($batch)){
+                        $batch->prev_station_id = $batch->station_id;
+                        $batch->station_id = 92; //Set Graphics done S-GRPH
+                        $batch->graphic_found = '1';
+                        $batch->save();
+
+                        logger('now moving for re print graphic...');
+                        return redirect()->action('GraphicsController@reprintGraphic',[
+                            'name' => $request->get('name'),
+                            'directory' => $request->get('directory'),
+                            'goto' => $request->get('goto'),
+                        ]);
+//                        return redirect()->back()->withSuccess('Batch moved to Graphics done');
+
+                    } else {
+                        return redirect()->back()->withErrors(['error' => 'Batch not found']);
+                    }
+                } else {
+                    return redirect()->back()->withErrors(['error' => 'File not found']);
+                }
+            }
+            $batch_number = $item->batch_number;
+
+            if ($origin == 'QC') {
+                $batch = Batch::find($request->get('id'));
+
+                if ($batch && $batch->batch_number != $batch_number) {
+                    return redirect()->back()->withErrors(['error' => sprintf('Please scan user ID')]);
+                }
+            } elseif ($origin == 'SL') {
+                $tracking_number = $item->tracking_number;
+            }
+
+            $result = $this->itemReject($item, $request->get('reject_qty'), $request->get('graphic_status'), $request->get('rejection_reason'),
+                $request->get('rejection_message'), $request->get('title'), $request->get('scrap'));
+
+            //send first reprint to production
+            if ($request->get('graphic_status') == '1') {
+
+                $count = Rejection::where('item_id', $result['reject_id'])->count();
+                $batch = Batch::with('route.stations_list')
+                    ->where('batch_number', $batch_number)
+                    ->first();
+
+                $station_change = $batch->route->stations_list[1]->station_id;
+
+                if ($count == 1) {
+                    $this->moveStation($result['new_batch_number'], $station_change);
+
+                    $msg = Batch::export($result['new_batch_number'], '0');
+
+                    if (isset($msg['error'])) {
+                        Batch::note( $result['new_batch_number'], '', 0, $msg['error']);
+                    }
+                }
+            }
+            logger('now moving for re print graphic...');
+            return redirect()->action('GraphicsController@reprintGraphic',[
+                'name' => $request->get('name'),
+                'directory' => $request->get('directory'),
+                'goto' => $request->get('goto'),
+            ]);
+
+        } catch (\Exception $e) {
+            logger('Error in reject: ' . $e->getMessage());
+            logger([
+                'error' => $e->getMessage(),
+                'function' =>   __FUNCTION__,
+                'line' => __LINE__
+            ]);
         }
-      }
-      
-      if ($origin == 'QC') {
-        
-        return redirect()->route('qcShow', ['id' => $request->get('id'), 'batch_number' => $batch_number, 'label' => $result['label']]);
-      
-      } elseif ($origin == 'BD') {
-        
-        return redirect()->route('batchShow', ['batch_number' => $batch_number, 'label' => $result['label']]);
-      
-      } elseif ($origin == 'WP') {
-                
-        return redirect()->route('wapShow', ['bin' => $request->get('bin_id'), 'label' => $result['label'], 'show_ship' => '1']);
-        
-      } elseif ($origin == 'SL') {
-        
-        $order = Order::find($item->order_5p);
-        
-        $order->order_status = 4;
-        $order->save();
-        
-        Order::note("Order status changed from Shipped to To Be Processed - Item $item->id rejected after shipping", $order->order_5p, $order->order_id);
-        
-        $shipment = Ship::with('items')
+    }
+
+    
+    public function reject (Request $request) {
+        try {
+            $origin = $request->get('origin');
+
+            $rules = [
+                'item_id'           => 'required',
+                'reject_qty'        => 'required|integer|min:1',
+                'graphic_status'    => 'required',
+                'rejection_reason'  => 'required|exists:rejection_reasons,id',
+            ];
+
+            $validation = Validator::make($request->all(), $rules);
+
+            if ( $validation->fails() ) {
+                return redirect()->back()->withErrors($validation);
+            }
+
+            $item = Item::with('inventoryunit')
+                ->where('id', $request->get('item_id'))
+                ->first();
+            $item->vendor = null;
+
+            if ($item->item_status == 'rejected') {
+                return redirect()->back()->withErrors(['error' => 'Item Already Rejected']);
+            }
+
+            if($request->rejection_reason == 117 && $request->graphic_status == '1') {
+                $batch = Batch::with('route.stations_list')->where('batch_number', $item->batch_number)
+                    ->first();
+
+                $option = json_decode($item->item_option);
+                $image_name = basename($option->Custom_EPS_download_link);
+
+
+                // Use parse_url to get the path
+                $path = parse_url($image_name, PHP_URL_PATH);
+
+                // Use pathinfo to get the filename
+                $filename = pathinfo($path, PATHINFO_FILENAME);
+                $fileExt = pathinfo($path, PATHINFO_EXTENSION);
+
+                $originalFilePath = $this->archive . $filename. '.' .$fileExt;
+                $newFilePath =  str_replace($filename, $item->batch_number, $originalFilePath);
+
+                if($originalFilePath == $newFilePath && file_exists($originalFilePath)){
+                    if(!empty($batch)){
+                        $batch->prev_station_id = $batch->station_id;
+                        $batch->station_id = 92; //Set Graphics done S-GRPH
+                        $batch->graphic_found = '1';
+                        $batch->save();
+
+                        $item->save();
+
+                        return redirect()->back()->withSuccess('Batch moved to Graphics done');
+                    } else {
+                        return redirect()->back()->withErrors(['error' => 'Batch not found']);
+                    }
+                } else if(file_exists($originalFilePath) && !file_exists($newFilePath)) {
+                    copy($originalFilePath, $newFilePath);
+                    unlink($originalFilePath);
+
+                    logger("Command successfully execute and changed the file : " . $newFilePath);
+
+                    $option->Custom_EPS_download_link = $this->remotArchiveUrl . $item->batch_number . '.' . $fileExt;
+                    $item->item_option = json_encode($option);
+                    $item->save();
+
+                    if(!empty($batch)){
+                        $batch->prev_station_id = $batch->station_id;
+                        $batch->station_id = 92; //Set Graphics done S-GRPH
+                        $batch->graphic_found = '1';
+                        $batch->save();
+
+                        return redirect()->back()->withSuccess('Batch moved to Graphics done');
+                    } else {
+                        return redirect()->back()->withErrors(['error' => 'Batch not found']);
+                    }
+                } else {
+                    return redirect()->back()->withErrors(['error' => 'File not found']);
+                }
+            }
+            $batch_number = $item->batch_number;
+
+            if ($origin == 'QC') {
+                $batch = Batch::find($request->get('id'));
+
+                if ($batch && $batch->batch_number != $batch_number) {
+                    return redirect()->back()->withErrors(['error' => sprintf('Please scan user ID')]);
+                }
+            } elseif ($origin == 'SL') {
+                $tracking_number = $item->tracking_number;
+            }
+
+            $result = $this->itemReject($item, $request->get('reject_qty'), $request->get('graphic_status'), $request->get('rejection_reason'),
+                $request->get('rejection_message'), $request->get('title'), $request->get('scrap'));
+
+            //send first reprint to production
+            if ($request->get('graphic_status') == '1') {
+
+                $count = Rejection::where('item_id', $result['reject_id'])->count();
+                $batch = Batch::with('route.stations_list')
+                    ->where('batch_number', $batch_number)
+                    ->first();
+
+                $station_change = $batch->route->stations_list[1]->station_id;
+
+                if ($count == 1) {
+                    $this->moveStation($result['new_batch_number'], $station_change);
+
+                    $msg = Batch::export($result['new_batch_number'], '0');
+
+                    if (isset($msg['error'])) {
+                        Batch::note( $result['new_batch_number'], '', 0, $msg['error']);
+                    }
+                }
+            }
+
+            if ($origin == 'QC') {
+
+                return redirect()->route('qcShow', ['id' => $request->get('id'), 'batch_number' => $batch_number, 'label' => $result['label']]);
+
+            } elseif ($origin == 'BD') {
+
+                return redirect()->route('batchShow', ['batch_number' => $batch_number, 'label' => $result['label']]);
+
+            } elseif ($origin == 'WP') {
+
+                return redirect()->route('wapShow', ['bin' => $request->get('bin_id'), 'label' => $result['label'], 'show_ship' => '1']);
+
+            } elseif ($origin == 'SL') {
+
+                $order = Order::find($item->order_5p);
+
+                $order->order_status = 4;
+                $order->save();
+
+                Order::note("Order status changed from Shipped to To Be Processed - Item $item->id rejected after shipping", $order->order_5p, $order->order_id);
+
+                $shipment = Ship::with('items')
                     ->where('order_number', $order->id)
                     ->where('tracking_number', $tracking_number)
                     ->first();
-        
-        if ($shipment && $shipment->items && count($shipment->items) == 0) {
-          $shipment->delete();
+
+                if ($shipment && $shipment->items && count($shipment->items) == 0) {
+                    $shipment->delete();
+                }
+
+                return redirect()->route('shipShow', ['search_for_first' => $tracking_number, 'search_in_first' => 'tracking_number', 'label' => $result['label']]);
+
+            } elseif ($origin == 'MP') {
+
+                return redirect()->action('GraphicsController@showBatch', ['scan_batches' => $request->get('scan_batches')]);
+
+            } else {
+
+                $label = $result['label'];
+                return view ('prints.includes.label', compact('label'));
+            }
+        } catch (\Exception $e) {
+            logger('Error in reject: ' . $e->getMessage());
+            logger([
+              'error' => $e->getMessage(),
+                'function' =>   __FUNCTION__,
+                'line' => __LINE__
+            ]);
         }
-        
-        return redirect()->route('shipShow', ['search_for_first' => $tracking_number, 'search_in_first' => 'tracking_number', 'label' => $result['label']]);
-      
-      } elseif ($origin == 'MP') {
-        
-        return redirect()->action('GraphicsController@showBatch', ['scan_batches' => $request->get('scan_batches')]);
-      
-      } else {
-        
-        $label = $result['label'];
-        return view ('prints.includes.label', compact('label'));
-      }
-      
     }
     
     public function redoItem (Request $request) {
@@ -613,6 +835,7 @@ class RejectionController extends Controller
         
           $item->item_status = 'rejected';
           $item->batch_number = $new_batch_number;
+          $item->vendor = null;
           $item->save();
           
           $rejection = new Rejection;

@@ -369,9 +369,9 @@
                                 <td width="300px">
                                     Route:
                                     <br>
-                                    <!-- <a href="{!! sprintf('/prod_config/batch_routes#%s', $option->route->batch_code) !!}" -->
-                                    <!--	target="_blank">{{ $option->route->batch_route_name }}</a> -->
-                                    {!! Form::select('br_' . $option->unique_row_value, $batch_routes, $option->batch_route_id, ['id' => 'br_' . $option->unique_row_value, 'class' => 'form-control batch_route', 'cols' => '100']) !!}
+{{--                                    <!-- <a href="{!! sprintf('/prod_config/batch_routes#%s', $option->route->batch_code) !!}" -->--}}
+{{--                                    <!--	target="_blank">{{ $option->route->batch_route_name }}</a> -->--}}
+                                    {!! Form::select('br_' . $option->unique_row_value , $batch_routes, $option->batch_route_id, ['id' => 'br_' . $option->unique_row_value, 'class' => 'form-control batch_route', 'cols' => '100']) !!}
                                     <br>
                                 </td>
                                 <td width="150px">

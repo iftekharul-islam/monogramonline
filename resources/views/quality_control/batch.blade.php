@@ -155,6 +155,8 @@
 		@include('/rejections/rejection_modal')
 		
 		@include('/shipping/shipval_modal')
+
+		<a class="btn btn-primary"  href="{{ url('shipping/qc_list?station_id='. session('station_id')) }}"> < Back To Next shipment</a>
 		
 	</div>
 

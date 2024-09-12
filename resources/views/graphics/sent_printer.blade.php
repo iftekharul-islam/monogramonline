@@ -5,10 +5,10 @@
 	<title>Sent to Printer</title>
 	<meta name = "viewport" content = "width=device-width, initial-scale=1">
 	<link type = "text/css" rel = "stylesheet" href = "/assets/css/bootstrap.min.css">
-	
+
 	<script type = "text/javascript" src = "/assets/js/jquery.min.js"></script>
 	<script type = "text/javascript" src = "/assets/js/bootstrap.min.js"></script>
-	
+
 </head>
 <body>
 	@include('includes.header_menu')
@@ -20,9 +20,9 @@
 			</ol>
 			@include('includes.error_div')
 			@include('includes.success_div')
-			
+
 			<h3> Sent to Printer</h3>
-			
+
 			<div class = "col-xs-12">
 				{!! Form::open(['method' => 'get']) !!}
 				<div class = "form-group col-xs-3">
@@ -33,15 +33,15 @@
 				</div>
 			{!! Form::close() !!}
 			</div>
-			
-			@if (isset($summary) && count($summary) > 0) 
+
+			@if (isset($summary) && count($summary) > 0)
 			 	<div class="col-md-6 col-xs-12">
 					<table class="table table-bordered">
 						<thead>
 							<th width="200">Sent To:</th>
-							<th width="100" style="text-align:right;">0-3 days</th>
-							<th width="100" style="text-align:right;">4-7 days</th>
-							<th width="100" style="text-align:right;">7+ days</th>
+							<th width="100" style="text-align:right;">0-2 days</th>
+							<th width="100" style="text-align:right;">3-5 days</th>
+							<th width="100" style="text-align:right;">5+ days</th>
 							<th width="100" style="text-align:right;">Total</th>
 						</thead>
 						<tbody>
@@ -84,12 +84,12 @@
 						</tbody>
 					</table>
 				</div>
-      @elseif (isset($to_printer) && count($to_printer) > 0)  
+      @elseif (isset($to_printer) && count($to_printer) > 0)
 
         <table class="table">
           <thead>
             {!! Form::open(['url' => '', 'id' => 'multiple_form', 'method' => 'get']) !!}
-            
+
             {!! Form::hidden('force', '0') !!}
 						{!! Form::hidden('directory', 'sublimation') !!}
             <tr>
@@ -107,7 +107,7 @@
             <tr>
               <tr>
                 <th style="width:30px;">
-                  <input type="checkbox" name="select_printer" id="select_printer" class="checkbox">	
+                  <input type="checkbox" name="select_printer" id="select_printer" class="checkbox">
                 </th>
                 <th style="width:150px;">Select All</th>
                 <th style="width:300px;">Printed</th>
@@ -121,8 +121,8 @@
           </thead>
 
           <tbody>
-            
-          @foreach($to_printer as $batch) 
+
+          @foreach($to_printer as $batch)
             <tr>
               <td>
                 <input type = "checkbox" name = "batch_number[]" class = "printer_checkbox"
@@ -141,21 +141,21 @@
 								<br>
 								{{ $batch->summary_date ? 'Summary Printed' : '' }}
               </td>
-              
+
               <td>
 								@if ($batch->to_printer != '1')
 									{{ $batch->to_printer }}
 									<br>
 								@endif
-								
+
 								{{ $batch->to_printer_date }}
-								
+
 								@if (isset($batch_queue[$batch->batch_number]) && $batch_queue[$batch->batch_number] != '1')
 									<br>
 									<small>{{  $batch_queue[$batch->batch_number] }}</small>s
 								@endif
 							</td>
-							
+
               <td>{{ substr($batch->min_order_date, 0 ,10) }}</td>
               <td>
                 @if ($batch->itemsCount->first())
@@ -173,9 +173,9 @@
                       title = "{{ $batch->to_printer_date }}">{{ $batch->to_printer_date }}<br>
                               {{ $scans[$batch->batch_number] }}</span>
               </td>
-              
+
               @if ($batch->first_item)
-                                  
+
                   <td>
                     <span data-toggle = "tooltip" data-placement = "top"
                             title = "{{ $batch->first_item->child_sku }}">
@@ -183,36 +183,36 @@
                     </span>
 
                   </td>
-                  
+
               @else
-                  
+
                   <td> No Items </td>
-                
+
               @endif
-              
+
 							<td>
 								@if ($batch->days > 1)
 									Printed {{ $batch->days }} Days Ago
 								@endif
 							</td>
               <td>
-								
+
                 {!! Form::button('Reprint ' . $batch->batch_number, ['class' => 'reprint btn btn-xs btn-info']) !!}
 
 							</td>
             </tr>
           @endforeach
-          
+
             {!! Form::close() !!}
         </tbody>
-          
+
         </table>
-        
+
         {!! Form::open(['url' => 'graphics/reprint_graphic', 'method' => 'post', 'id' => 'reprint_form']) !!}
         {!! Form::hidden('name', null, ['id' => 'reprint_name']) !!}
         {!! Form::close() !!}
-        
-      @else 
+
+      @else
 				<div class = "col-xs-12">
         	<div class = "alert alert-warning">No batches sent to printer</div>
 				</div>
@@ -227,7 +227,7 @@
 		state = !state;
 		$(".printer_checkbox").prop('checked', state);
 	});
-	
+
 	$("#export6").click(function() {
 			if ( confirm("Are you sure you want to export the selected batches again? \n (All Graphic Status will be lost)") ) {
 				$("#multiple_form").attr('action', 'export_batchbulk').submit();
@@ -239,33 +239,33 @@
  				$("#multiple_form").attr('action', 'reprint_bulk').submit();
  			}
  	 });
-	 
+
 	 $(".reprint").click(function() {
-		 
+
 		 $(this).button('loading');
-		 $(this).attr("disabled","disabled"); 
-		 
+		 $(this).attr("disabled","disabled");
+
 		 var batch = $( this ).text().substr($( this ).text().indexOf(' ') + 1) ;
-		 
+
 		 $("#reprint_name").val(batch);
-		 
+
 		 $.ajax({
 			 type: 'post',
 			 url: '{{ url("graphics/reprint_graphic") }}',
 			 data: $("#reprint_form").serialize(),
 			 context: this,
 			 success: function (response) {
-				 if (response != 'success') { 
+				 if (response != 'success') {
 				 	$(this).removeClass('btn-info').addClass('btn-danger');
 				} else {
 					$(this).removeClass('btn-info').addClass('btn-success');
 				}
 				 $(this).html(response);
-			 } 
+			 }
 		 });
 	 });
-	 
+
 </script>
-			
+
 </body>
 </html>

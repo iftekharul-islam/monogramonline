@@ -175,7 +175,7 @@ class Dropship {
         /*
          * Mark it as exported on the cache engine, actually, a json file.
          */
-        $file = "/var/www/order.monogramonline.com/Shipment.json";
+        $file = "/var/www/5p_oms/Shipment.json";
 
         $data = [];
         if(file_exists($file)) {
@@ -225,7 +225,7 @@ class Dropship {
 
 
         $inventoryData = [];
-        $file2 = "/var/www/order.monogramonline.com/Inventories.json";
+        $file2 = "/var/www/5p_oms/Inventories.json";
         if(file_exists($file2)) {
             $inventoryData = json_decode(file_get_contents($file2), true);
         }
@@ -374,8 +374,10 @@ class Dropship {
         $ids = array_unique($ids);
 
         foreach ($mappedData as $itemsData) {
-            $orders[$itemsData['order']][] = $itemsData;
-            $ids[] = $itemsData['order'];
+            if(!empty($itemsData['order'])){
+                $orders[$itemsData['order']][] = $itemsData;
+                $ids[] = $itemsData['order'];
+            }
         }
 
         foreach ($orders as $orderId => $orderList) {

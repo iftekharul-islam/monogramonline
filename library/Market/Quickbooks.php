@@ -1,6 +1,6 @@
-<?php 
- 
-namespace Market; 
+<?php
+
+namespace Market;
 
 use App\Http\Controllers\ZakekeController;
 use App\Section;
@@ -10,105 +10,236 @@ use Excel;
 use App\Store;
 use App\Ship;
 
-class Quickbooks 
-{ 
-		public static function export($shipments) {
-      
-      // $shipments = Ship::with('order.customer', 'order.store', 'items')
-      //                         ->whereIn('id', $shipment_ids)
-      //                         ->where('is_deleted', '0')
-      //                         ->get();
-		  $lines = array();
-		   
-      $line = array();
-      
-      $line[] = 'blank';
-      $line[] = 'RefNumber';
-      $line[] = 'Customer';
-      $line[] = 'TxnDate';
-      $line[] = 'ShipDate';
-      $line[] = 'ShipMethodName';
-      $line[] = 'TrackingNum';
-      $line[] = 'ShipAddrLine1';
-      $line[] = 'ShipAddrLine2';
-      $line[] = 'ShipAddrLine3';
-      $line[] = 'ShipAddrCity';
-      $line[] = 'ShipAddrState';
-      $line[] = 'ShipAddrPostalCode';
-      $line[] = 'ShipAddrCountry';
-      $line[] = 'PrivateNote';
-      $line[] = 'Msg';
-      $line[] = 'Currency';
-      $line[] = 'LineItem';
-      $line[] = 'LineQty';
-      $line[] = 'LineDesc';
-      $line[] = 'LineUnitPrice';
-      
-      $lines[] = $line;
-      
-			foreach ($shipments as $shipment) {
-        
-				foreach ($shipment->items as $item) {
-					
-					$line = array();
-					
-          $line[] = '';
-          $line[] = $shipment->unique_order_id;
-          $line[] = $shipment->order->store->qb_name ?? $shipment->order->store->store_name;
-          $line[] = date("m/d/Y", strtotime($shipment->order->order_date));
-          $line[] = date("m/d/Y", strtotime($shipment->transaction_datetime));
-          $line[] = $shipment->mail_class;
-          $line[] = $shipment->tracking_number;
-          $line[] = $shipment->order->customer->ship_full_name;
-          $line[] = $shipment->order->customer->ship_address_1;
-          $line[] = $shipment->order->customer->ship_address_2;
-          $line[] = $shipment->order->customer->ship_city;
-          $line[] = $shipment->order->customer->ship_state;
-          $line[] = $shipment->order->customer->ship_zip;
-          $line[] = $shipment->order->customer->ship_country;
-          $line[] = '';
-          if ($shipment->order->purchase_order != null) {
-            $line[] = $shipment->order->purchase_order . '-' . $shipment->order->short_order;
-          } else {
-            $line[] = $shipment->order->short_order;
-          }
-          $line[] = 'USD';
-          $line[] = $item->item_code;
-          $line[] = $item->item_quantity;
-          $line[] = $item->id . ' - ' . $item->item_description;
-          $line[] = $item->item_unit_price;
-          
-					$lines[] = $line;
-				}
-        
-        // $shipment->export = '1';
-        $shipment->save();
-			}
-			
-			if (count($lines) > 0) {
-				$filename = strtoupper('QB_' . date('ymd_His')); 
-        Log::info($filename);
-				$path = storage_path() . '/EDI/Quickbooks/'; 
-        
-        try {
-          Excel::create($filename, function($excel) use ($lines) {
-              $excel->sheet('Invoices', function($sheet) use ($lines) {
-                  $sheet->fromArray($lines, null, 'A1', false, false);
-              });
+class Quickbooks
+{
+    public static function export($shipments)
+    {
 
-          })->store('xlsx', $path);
-          
-          // copy($path . $filename . '.xls', storage_path() . '/EDI/download/' . $filename . '.xls');
-        } catch (\Exception $e) {
-          Log::error('Error Creating Quickbooks XLSX - ' . $e->getMessage());
+        // $shipments = Ship::with('order.customer', 'order.store', 'items')
+        //                         ->whereIn('id', $shipment_ids)
+        //                         ->where('is_deleted', '0')
+        //                         ->get();
+        $lines = array();
+
+        $line = array();
+
+        $line[] = 'blank';
+        $line[] = 'RefNumber';
+        $line[] = 'Customer';
+        $line[] = 'TxnDate';
+        $line[] = 'ShipDate';
+        $line[] = 'ShipMethodName';
+        $line[] = 'TrackingNum';
+        $line[] = 'ShipAddrLine1';
+        $line[] = 'ShipAddrLine2';
+        $line[] = 'ShipAddrLine3';
+        $line[] = 'ShipAddrCity';
+        $line[] = 'ShipAddrState';
+        $line[] = 'ShipAddrPostalCode';
+        $line[] = 'ShipAddrCountry';
+        $line[] = 'PrivateNote';
+        $line[] = 'Msg';
+        $line[] = 'Currency';
+        $line[] = 'LineItem';
+        $line[] = 'LineQty';
+        $line[] = 'LineDesc';
+        $line[] = 'LineUnitPrice';
+        $line[] = 'Username';
+        $lines[] = $line;
+
+        foreach ($shipments as $shipment) {
+
+            foreach ($shipment->items as $item) {
+                $line = array();
+
+                $line[] = '';
+                $line[] = $shipment->unique_order_id;
+                $line[] = $shipment->order->store->qb_name ?? $shipment->order->store->store_name;
+                $line[] = date("m/d/Y", strtotime($shipment->order->order_date));
+                $line[] = date("m/d/Y", strtotime($shipment->transaction_datetime));
+                $line[] = $shipment->mail_class;
+                $line[] = $shipment->tracking_number;
+                $line[] = $shipment->order->customer->ship_full_name;
+                $line[] = $shipment->order->customer->ship_address_1;
+                $line[] = $shipment->order->customer->ship_address_2;
+                $line[] = $shipment->order->customer->ship_city;
+                $line[] = $shipment->order->customer->ship_state;
+                $line[] = $shipment->order->customer->ship_zip;
+                $line[] = $shipment->order->customer->ship_country;
+                $line[] = '';
+                if ($shipment->order->purchase_order != null) {
+                    $line[] = $shipment->order->purchase_order . '-' . $shipment->order->short_order;
+                } else {
+                    $line[] = $shipment->order->short_order;
+                }
+                $line[] = 'USD';
+                $line[] = $item->item_code;
+                $line[] = $item->item_quantity;
+                $line[] = $item->id . ' - ' . $item->item_description;
+                $line[] = $item->item_unit_price;
+                $line[] = $shipment->user->username;
+                $lines[] = $line;
+            }
+
+            // $shipment->export = '1';
+            $shipment->save();
         }
-			}
-			
-			Log::info('Quickbooks invoice csv created');
 
-			return $path . $filename . '.xlsx';
-		}
+        if (count($lines) > 0) {
+            $filename = strtoupper('QB_' . date('ymd_His'));
+            Log::info($filename);
+            $path = storage_path() . '/EDI/Quickbooks/';
 
+            try {
+                Excel::create($filename, function ($excel) use ($lines) {
+                    $excel->sheet('Invoices', function ($sheet) use ($lines) {
+                        $sheet->fromArray($lines, null, 'A1', false, false);
+                    });
+
+                })->store('xlsx', $path);
+
+                // copy($path . $filename . '.xls', storage_path() . '/EDI/download/' . $filename . '.xls');
+            } catch (\Exception $e) {
+                Log::error('Error Creating Quickbooks XLSX - ' . $e->getMessage());
+            }
+        }
+
+        Log::info('Quickbooks invoice csv created');
+
+        return $path . $filename . '.xlsx';
+    }
+    public static function vendorExport($shipments)
+    {
+
+        $lines = array();
+
+        $line = array();
+
+        $line[] = 'blank';
+        $line[] = 'RefNumber';
+        $line[] = 'Customer';
+        $line[] = 'TxnDate';
+        $line[] = 'ShipDate';
+        $line[] = 'ShipMethodName';
+        $line[] = 'TrackingNum';
+        $line[] = 'Batch';
+        $line[] = 'ShortOrder';
+        $line[] = 'LongOrder';
+        $line[] = 'ShipAddrLine1';
+        $line[] = 'ShipAddrLine2';
+        $line[] = 'ShipAddrLine3';
+        $line[] = 'ShipAddrCity';
+        $line[] = 'ShipAddrState';
+        $line[] = 'ShipAddrPostalCode';
+        $line[] = 'ShipAddrCountry';
+        $line[] = 'PrivateNote';
+        $line[] = 'Msg';
+        $line[] = 'Currency';
+        $line[] = 'LineItem';
+        $line[] = 'LineQty';
+        $line[] = 'LineDesc';
+        $line[] = 'LineUnitPrice';
+        $line[] = 'Username';
+        $line[] = 'Vendor';
+        $lines[] = $line;
+
+        foreach ($shipments as $shipment) {
+
+            foreach ($shipment->items as $item) {
+                $invId = $item->inventory_unit->first()->inventory->id;
+                $file = "/var/www/5p_oms/Inventories.json";
+                $template = [
+                    "DROPSHIP" => false,
+                    "DROPSHIP_SKU" => "",
+                    "DROPSHIP_COST" => 0
+                ];
+                $finalData = [];
+
+                if(!file_exists($file)) {
+                    file_put_contents($file, json_encode(
+                        [
+                            $invId => $template
+                        ], JSON_PRETTY_PRINT
+                    ));
+                    $finalData = $template;
+                } else {
+                    $data = json_decode(file_get_contents($file), true);
+
+                    if(!isset($data[$invId])) {
+                        $data[$invId] = $template;
+
+                        file_put_contents($file, json_encode(
+                            $data, JSON_PRETTY_PRINT
+                        ));
+                        $finalData = $data[$invId];
+                    } else {
+                        $finalData = $data[$invId];
+                    }
+                }
+                $dropShipCost = $finalData['DROPSHIP_COST'];
+
+                $line = array();
+
+                $line[] = '';
+                $line[] = $shipment->unique_order_id;
+                $line[] = $shipment->order->store->qb_name ?? $shipment->order->store->store_name;
+                $line[] = date("m/d/Y", strtotime($shipment->order->order_date));
+                $line[] = date("m/d/Y", strtotime($shipment->transaction_datetime));
+                $line[] = $shipment->mail_class;
+                $line[] = $shipment->tracking_number;
+                $line[] = $item->batch_number;
+                $line[] = $shipment->order->short_order;
+                $line[] = $shipment->order->store_id;
+                $line[] = $shipment->order->customer->ship_full_name;
+                $line[] = $shipment->order->customer->ship_address_1;
+                $line[] = $shipment->order->customer->ship_address_2;
+                $line[] = $shipment->order->customer->ship_city;
+                $line[] = $shipment->order->customer->ship_state;
+                $line[] = $shipment->order->customer->ship_zip;
+                $line[] = $shipment->order->customer->ship_country;
+                $line[] = '';
+                if ($shipment->order->purchase_order != null) {
+                    $line[] = $shipment->order->purchase_order . '-' . $shipment->order->short_order;
+                } else {
+                    $line[] = $shipment->order->short_order;
+                }
+                $line[] = 'USD';
+                $line[] = $item->item_code;
+                $line[] = $item->item_quantity;
+                $line[] = $item->id . ' - ' . $item->item_description;
+                $line[] = $dropShipCost ?? 0;
+                $line[] = $shipment->user->username;
+                $line[] = $item->vendor;
+                $lines[] = $line;
+            }
+
+            // $shipment->export = '1';
+//            $shipment->save();
+        }
+
+        if (count($lines) > 0) {
+            $filename = strtoupper('QB_Vendor_' . date('ymd_His'));
+            Log::info($filename);
+            $path = storage_path() . '/EDI/Quickbooks/';
+
+            try {
+                Excel::create($filename, function ($excel) use ($lines) {
+                    $excel->sheet('Invoices', function ($sheet) use ($lines) {
+                        $sheet->fromArray($lines, null, 'A1', false, false);
+                    });
+
+                })->store('xlsx', $path);
+
+                // copy($path . $filename . '.xls', storage_path() . '/EDI/download/' . $filename . '.xls');
+            } catch (\Exception $e) {
+                Log::error('Error Creating Quickbooks XLSX - ' . $e->getMessage());
+            }
+        }
+
+        Log::info('Quickbooks vendor xlsx created');
+
+        return $path . $filename . '.xlsx';
+    }
     public static function csvExport($shipments)
     {
         $lines = array();
@@ -121,19 +252,16 @@ class Quickbooks
         $line[] = 'LineItem';
         $line[] = 'LineQty';
         $line[] = 'LineUnitPrice';
-
         $line[] = 'Order #';
         $line[] = 'Inventory Description';
         $line[] = 'Inventory Section';
         $line[] = 'Dropship Cost';
         $line[] = 'Total';
         $lines[] = $line;
-
-        $file = "/var/www/order.monogramonline.com/Inventories.json";
+        $file = "/var/www/5p_oms/Inventories.json";
         $data = json_decode(file_get_contents($file), true);
 
-        $sectionsAfter = Section::where('is_deleted', '0')
-            ->get();
+        $sectionsAfter = Section::where('is_deleted', '0')->get();
 
         $sections = [];
 
@@ -150,7 +278,7 @@ class Quickbooks
             $line[] = date("m/d/Y", strtotime($item->order->order_date));
             $line[] = date("m/d/Y", strtotime($item->transaction_datetime));
             //$line[] = '"'.$item->shipping_id.'"';
-            $line[] = "_".$item->shipping_id;
+            $line[] = "_" . $item->shipping_id;
             $line[] = $item->item_code;
             $line[] = $item->item_quantity;
             $line[] = $item->item_unit_price;
@@ -159,7 +287,7 @@ class Quickbooks
             $line[] = $inventory->stock_name_discription ?? "Field stock_name_discription not found";
             $line[] = $sections[$inventory->section_id] ?? "ID for section  " . $inventory->section_id . " not found";
 
-            if(isset($data[$inventory->id])) {
+            if (isset($data[$inventory->id])) {
                 $line[] = $data[$inventory->id]['DROPSHIP_COST'];
                 $line[] = $data[$inventory->id]['DROPSHIP_COST'] * $item->item_quantity;
             } else {

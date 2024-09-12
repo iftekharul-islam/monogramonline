@@ -90,45 +90,46 @@
 			@endif
 		</h3>
 			
-		@if (auth()->user())
+		@if (auth()->user() && empty(auth()->user()->vendor))
 			<div class = "col-xs-12">
-			{!! Form::open(['name' => 'store_form', 'method' => 'get', 'id' => 'store_form']) !!} 
-				<div class = "form-group col-xs-1">
-					<label>Before:</label>
-				</div>
+			{!! Form::open(['name' => 'store_form', 'method' => 'get', 'id' => 'store_form']) !!}
 				<div class = "form-group col-xs-2">
+					{!! Form::label('Before', 'Before:') !!}
 					<div class = 'input-group date' id = 'max_date_picker'>
 						 {!! Form::text('max_date', $max_date, ['id'=>'max_datepicker', 'class' => 'form-control', 'placeholder' => 'Enter date', 'autocomplete' => 'off']) !!}
 					 <span class = "input-group-addon"><span class = "glyphicon glyphicon-calendar"></span></span>
 			 		</div>
 				</div>
-				<div class = "form-group col-xs-1">
-					<label>Manufacture:</label>
-				</div>
 
 				<div class = "form-group col-xs-2">
+					{!! Form::label('Manufacture', 'Manufacture:') !!}
 					<select name="manufacture_id" id="" class="form-control">
 						<option value="">Select manufacture</option>
 						@foreach($manufactures as $item)
 							<option value="{{ $item->id }}" {{ Request::get('manufacture_id') == $item->id ? 'selected' : '' }}>{{ $item->name }}</option>
 						@endforeach
 					</select>
-{{--					{!! Form::select('manufacture_id', $manufactures, ['id'=>'batch_type', 'class' => 'form-control']) !!}--}}
 				</div>
-{{--				<div class = "form-group col-xs-2">--}}
-{{--					{!! Form::select('batch_type', ['' => '', 'B%' => 'Back order', 'R%' => 'Reject', 'X%' => 'Redo'], $batch_type, ['id'=>'batch_type', 'class' => 'form-control']) !!}--}}
-{{--				</div>--}}
 
-				<div class = "form-group col-xs-1">
-					<label>Store:</label>
-				</div>
 				 <div class = "form-group col-xs-2">
+					 {!! Form::label('Store', 'Store:') !!}
 					 {!! Form::select('store_ids[]', $stores, $store_ids, ['id'=>'store_ids', 'multiple' => 'multiple', 'class' => 'form-control']) !!}
 				 </div>
 
 				<div class = "form-group col-xs-2">
 					{!! Form::label('Company', 'Company:') !!}
+					<?php
+						$companies = ['' => 'Select company'] + $companies;
+					?>
 					{!! Form::select('company', $companies, '', ['class' => 'form-control']) !!}
+				</div>
+
+				<div class = "form-group col-xs-2">
+					{!! Form::label('Vendor', 'Vendor:') !!}
+					<?php
+						$vendors = ['' => 'Select vendor'] + $vendors;
+                    ?>
+					{!! Form::select('vendor', $vendors, $vendor, ['class' => 'form-control']) !!}
 				</div>
 
 				<div class = "form-group col-xs-1">
@@ -159,6 +160,418 @@
 				<th width="8%" class="right">7+</th>
 			</tr>
 		</thead>
+			@if(!empty($vendor))
+				<tbody>
+					<?php
+					$vendor_A_valid = false;
+					$vendor_B_valid = false;
+					$vendor_C_valid = false;
+
+					$vendor_A_count = 0;
+					$vendor_B_count = 0;
+					$vendor_C_count = 0;
+					?>
+
+				@foreach($vendor_items as $vendor_item)
+					@if($vendor_item->vendor == $vendor)
+						<?php
+							$vendor_A_count = !empty($vendor_item->vendor_A_count) ? $vendor_item->vendor_A_count : 0;
+						?>
+
+						@if($vendor_A_count > 0)
+							@if(!$vendor_A_valid)
+									<?php
+									$vendor_A_valid = true;
+									?>
+								<tr class="success">
+									<td colspan="10">Vendor - A</td>
+								</tr>
+							@endif
+
+							<tr class="lines">
+								<td>
+									<a href = "{!! url(sprintf("/production/status_detail?station=%s", $vendor_item->station_id)) !!}" target = "_blank">{{ $vendor_item->station_name }}</a>
+								</td>
+								<td>
+									{{ $vendor_item->station_description }}
+								</td>
+								<td class="data">
+									{!! Form::open(['method' => 'post', 'url' => '/move_next', 'target' => '_blank']) !!}
+									{!! Form::hidden('station',  $vendor_item['station_id']) !!}
+									{!! Form::hidden('vendor',  'VENDOR-A') !!}
+									{!! Form::submit($vendor_A_count, ['class' => 'remove_button_css']) !!}
+									{!! Form::close() !!}
+								</td>
+								<td class="data">{{ number_format($vendor_item->items_count) }}</td>
+								<td class="databorder">
+									@if ($vendor_item->order_1 > 0)
+										<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&start_date=%s&end_date=%s&store=%s&status=1",
+																					$vendor_item->station_name, $date[1], $date[0], $store_link)) !!}" target="_blank">{{ number_format($vendor_item->order_1) }}</a>
+									@else
+										{{ $vendor_item->order_1 }}
+									@endif
+								</td>
+								<td class="data">
+									@if ($vendor_item->order_2 > 0)
+										<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&start_date=%s&end_date=%s&store=%s&status=1",
+																				$vendor_item->station_name, $date[3], $date[2], $store_link)) !!}" target="_blank">{{ number_format($vendor_item->order_2) }}</a>
+									@else
+										{{ $vendor_item->order_2 }}
+									@endif
+								</td>
+								<td class="data">
+									@if ($vendor_item->order_3 > 0)
+										<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&start_date=%s&end_date=%s&store=%s&status=1",
+																				$vendor_item->station_name, $vendor_item->earliest_order_date, $date[4], $store_link)) !!}" target="_blank">{{ number_format($vendor_item->order_3) }}</a>
+									@else
+										{{ $vendor_item->order_3 }}
+									@endif
+								</td>
+
+								<td class="databorder">
+									@if ($vendor_item->scan_1 > 0)
+										<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&scan_start_date=%s&scan_end_date=%s&store=%s&status=1",
+																				$vendor_item['station_name'], $date[1], $date[0], $store_link)) !!}" target = "_blank">{{ number_format($vendor_item->scan_1) }}</a>
+									@else
+										{{ $vendor_item->scan_1 }}
+									@endif
+								</td>
+								<td class="data">
+									@if ($vendor_item->scan_2 > 0)
+										<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&scan_start_date=%s&scan_end_date=%s&store=%s&status=1",
+																				$vendor_item['station_name'], $date[3], $date[2], $store_link)) !!}" target = "_blank">{{ number_format($vendor_item->scan_2) }}</a>
+									@else
+										{{ $vendor_item->scan_2 }}
+									@endif
+								</td>
+								<td class="data">
+									@if ($vendor_item->scan_3 > 0)
+										<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&scan_start_date=%s&scan_end_date=%s&store=%s&status=1",
+																				$vendor_item['station_name'], $vendor_item->earliest_scan_date, $date[4], $store_link)) !!}" target = "_blank">{{ number_format($vendor_item->scan_3) }}</a>
+									@else
+										{{ $vendor_item->scan_3 }}
+									@endif
+								</td>
+							</tr>
+						@endif
+					@endif
+				@endforeach
+				@if($vendor_A_valid )
+					<tr>
+						<td></td>
+
+						<td align="right"><b>Vendor-A</b> Totals: ------</td>
+
+						<td class="total">{!! number_format($vendor_items->where('vendor', 'VENDOR-A')->sum('vendor_A_count')) !!}</td>
+						<td class="total">{!! number_format($vendor_items->where('vendor', 'VENDOR-A')->sum('items_count')) !!}</td>
+						<td class="totalborder">{!! number_format($vendor_items->where('vendor', 'VENDOR-A')->sum('order_1')) !!}</td>
+						<td class="total">{!! number_format($vendor_items->where('vendor', 'VENDOR-A')->sum('order_2')) !!}</td>
+						<td class="total">{!! number_format($vendor_items->where('vendor', 'VENDOR-A')->sum('order_3')) !!}</td>
+						<td class="totalborder">{!! number_format($vendor_items->where('vendor', 'VENDOR-A')->sum('scan_1')) !!}</td>
+						<td class="total">{!! number_format($vendor_items->where('vendor', 'VENDOR-A')->sum('scan_2')) !!}</td>
+						<td class="total">{!! number_format($vendor_items->where('vendor', 'VENDOR-A')->sum('scan_3')) !!}</td>
+					</tr>
+				@endif
+				@foreach($vendor_items as $vendor_item)
+					@if($vendor_item->vendor == $vendor)
+						<?php
+						$vendor_B_count = !empty($vendor_item->vendor_B_count) ? $vendor_item->vendor_B_count : 0;
+						?>
+						@if($vendor_B_count > 0)
+						@if(!$vendor_B_valid)
+								<?php
+								$vendor_B_valid = true;
+								?>
+							<tr class="success">
+								<td colspan="10">Vendor - B</td>
+							</tr>
+						@endif
+
+						<tr class="lines">
+							<td>
+								<a href = "{!! url(sprintf("/production/status_detail?station=%s", $vendor_item->station_id)) !!}" target = "_blank">{{ $vendor_item->station_name }}</a>
+							</td>
+							<td>
+								{{ $vendor_item->station_description }}
+							</td>
+							<td class="data">
+								{!! Form::open(['method' => 'post', 'url' => '/move_next', 'target' => '_blank']) !!}
+								{!! Form::hidden('station',  $vendor_item['station_id']) !!}
+								{!! Form::hidden('vendor',  'VENDOR-B') !!}
+								{!! Form::submit($vendor_B_count, ['class' => 'remove_button_css']) !!}
+								{!! Form::close() !!}
+							</td>
+							<td class="data">{{ number_format($vendor_item->items_count) }}</td>
+							<td class="databorder">
+								@if ($vendor_item->order_1 > 0)
+									<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&start_date=%s&end_date=%s&store=%s&status=1",
+																				$vendor_item->station_name, $date[1], $date[0], $store_link)) !!}" target="_blank">{{ number_format($vendor_item->order_1) }}</a>
+								@else
+									{{ $vendor_item->order_1 }}
+								@endif
+							</td>
+							<td class="data">
+								@if ($vendor_item->order_2 > 0)
+									<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&start_date=%s&end_date=%s&store=%s&status=1",
+																			$vendor_item->station_name, $date[3], $date[2], $store_link)) !!}" target="_blank">{{ number_format($vendor_item->order_2) }}</a>
+								@else
+									{{ $vendor_item->order_2 }}
+								@endif
+							</td>
+							<td class="data">
+								@if ($vendor_item->order_3 > 0)
+									<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&start_date=%s&end_date=%s&store=%s&status=1",
+																			$vendor_item->station_name, $vendor_item->earliest_order_date, $date[4], $store_link)) !!}" target="_blank">{{ number_format($vendor_item->order_3) }}</a>
+								@else
+									{{ $vendor_item->order_3 }}
+								@endif
+							</td>
+
+							<td class="databorder">
+								@if ($vendor_item->scan_1 > 0)
+									<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&scan_start_date=%s&scan_end_date=%s&store=%s&status=1",
+																			$vendor_item['station_name'], $date[1], $date[0], $store_link)) !!}" target = "_blank">{{ number_format($vendor_item->scan_1) }}</a>
+								@else
+									{{ $vendor_item->scan_1 }}
+								@endif
+							</td>
+							<td class="data">
+								@if ($vendor_item->scan_2 > 0)
+									<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&scan_start_date=%s&scan_end_date=%s&store=%s&status=1",
+																			$vendor_item['station_name'], $date[3], $date[2], $store_link)) !!}" target = "_blank">{{ number_format($vendor_item->scan_2) }}</a>
+								@else
+									{{ $vendor_item->scan_2 }}
+								@endif
+							</td>
+							<td class="data">
+								@if ($vendor_item->scan_3 > 0)
+									<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&scan_start_date=%s&scan_end_date=%s&store=%s&status=1",
+																			$vendor_item['station_name'], $vendor_item->earliest_scan_date, $date[4], $store_link)) !!}" target = "_blank">{{ number_format($vendor_item->scan_3) }}</a>
+								@else
+									{{ $vendor_item->scan_3 }}
+								@endif
+							</td>
+						</tr>
+					@endif
+					@endif
+				@endforeach
+				@if($vendor_B_valid)
+					<tr>
+						<td></td>
+
+						<td align="right"><b>Vendor-B</b> Totals: ------</td>
+
+						<td class="total">{!! number_format($vendor_items->where('vendor', 'VENDOR-B')->sum('vendor_B_count')) !!}</td>
+						<td class="total">{!! number_format($vendor_items->where('vendor', 'VENDOR-B')->sum('items_count')) !!}</td>
+						<td class="totalborder">{!! number_format($vendor_items->where('vendor', 'VENDOR-B')->sum('order_1')) !!}</td>
+						<td class="total">{!! number_format($vendor_items->where('vendor', 'VENDOR-B')->sum('order_2')) !!}</td>
+						<td class="total">{!! number_format($vendor_items->where('vendor', 'VENDOR-B')->sum('order_3')) !!}</td>
+						<td class="totalborder">{!! number_format($vendor_items->where('vendor', 'VENDOR-B')->sum('scan_1')) !!}</td>
+						<td class="total">{!! number_format($vendor_items->where('vendor', 'VENDOR-B')->sum('scan_2')) !!}</td>
+						<td class="total">{!! number_format($vendor_items->where('vendor', 'VENDOR-B')->sum('scan_3')) !!}</td>
+					</tr>
+				@endif
+				@foreach($vendor_items as $vendor_item)
+					@if($vendor_item->vendor == $vendor)
+						<?php
+						$vendor_C_count = !empty($vendor_item->vendor_C_count) ? $vendor_item->vendor_C_count : 0;
+						?>
+						@if($vendor_C_count > 0)
+						@if(!$vendor_C_valid)
+								<?php
+								$vendor_C_valid = true;
+								?>
+							<tr class="success">
+								<td colspan="10">Vendor - C</td>
+							</tr>
+						@endif
+
+						<tr class="lines">
+							<td>
+								<a href = "{!! url(sprintf("/production/status_detail?station=%s", $vendor_item->station_id)) !!}" target = "_blank">{{ $vendor_item->station_name }}</a>
+							</td>
+							<td>
+								{{ $vendor_item->station_description }}
+							</td>
+							<td class="data">
+								{!! Form::open(['method' => 'post', 'url' => '/move_next', 'target' => '_blank']) !!}
+								{!! Form::hidden('station',  $vendor_item['station_id']) !!}
+								{!! Form::hidden('vendor',  'VENDOR-C') !!}
+								{!! Form::submit($vendor_C_count, ['class' => 'remove_button_css']) !!}
+								{!! Form::close() !!}
+							</td>
+							<td class="data">{{ number_format($vendor_item->items_count) }}</td>
+							<td class="databorder">
+								@if ($vendor_item->order_1 > 0)
+									<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&start_date=%s&end_date=%s&store=%s&status=1",
+																				$vendor_item->station_name, $date[1], $date[0], $store_link)) !!}" target="_blank">{{ number_format($vendor_item->order_1) }}</a>
+								@else
+									{{ $vendor_item->order_1 }}
+								@endif
+							</td>
+							<td class="data">
+								@if ($vendor_item->order_2 > 0)
+									<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&start_date=%s&end_date=%s&store=%s&status=1",
+																			$vendor_item->station_name, $date[3], $date[2], $store_link)) !!}" target="_blank">{{ number_format($vendor_item->order_2) }}</a>
+								@else
+									{{ $vendor_item->order_2 }}
+								@endif
+							</td>
+							<td class="data">
+								@if ($vendor_item->order_3 > 0)
+									<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&start_date=%s&end_date=%s&store=%s&status=1",
+																			$vendor_item->station_name, $vendor_item->earliest_order_date, $date[4], $store_link)) !!}" target="_blank">{{ number_format($vendor_item->order_3) }}</a>
+								@else
+									{{ $vendor_item->order_3 }}
+								@endif
+							</td>
+
+							<td class="databorder">
+								@if ($vendor_item->scan_1 > 0)
+									<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&scan_start_date=%s&scan_end_date=%s&store=%s&status=1",
+																			$vendor_item['station_name'], $date[1], $date[0], $store_link)) !!}" target = "_blank">{{ number_format($vendor_item->scan_1) }}</a>
+								@else
+									{{ $vendor_item->scan_1 }}
+								@endif
+							</td>
+							<td class="data">
+								@if ($vendor_item->scan_2 > 0)
+									<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&scan_start_date=%s&scan_end_date=%s&store=%s&status=1",
+																			$vendor_item['station_name'], $date[3], $date[2], $store_link)) !!}" target = "_blank">{{ number_format($vendor_item->scan_2) }}</a>
+								@else
+									{{ $vendor_item->scan_2 }}
+								@endif
+							</td>
+							<td class="data">
+								@if ($vendor_item->scan_3 > 0)
+									<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&scan_start_date=%s&scan_end_date=%s&store=%s&status=1",
+																			$vendor_item['station_name'], $vendor_item->earliest_scan_date, $date[4], $store_link)) !!}" target = "_blank">{{ number_format($vendor_item->scan_3) }}</a>
+								@else
+									{{ $vendor_item->scan_3 }}
+								@endif
+							</td>
+						</tr>
+					@endif
+					@endif
+				@endforeach
+				@if($vendor_C_valid)
+					<tr>
+						<td></td>
+
+						<td align="right"><b>Vendor-C</b> Totals: ------</td>
+
+						<td class="total">{!! number_format($vendor_items->where('vendor', 'VENDOR-C')->sum('vendor_C_count')) !!}</td>
+						<td class="total">{!! number_format($vendor_items->where('vendor', 'VENDOR-C')->sum('items_count')) !!}</td>
+						<td class="totalborder">{!! number_format($vendor_items->where('vendor', 'VENDOR-C')->sum('order_1')) !!}</td>
+						<td class="total">{!! number_format($vendor_items->where('vendor', 'VENDOR-C')->sum('order_2')) !!}</td>
+						<td class="total">{!! number_format($vendor_items->where('vendor', 'VENDOR-C')->sum('order_3')) !!}</td>
+						<td class="totalborder">{!! number_format($vendor_items->where('vendor', 'VENDOR-C')->sum('scan_1')) !!}</td>
+						<td class="total">{!! number_format($vendor_items->where('vendor', 'VENDOR-C')->sum('scan_2')) !!}</td>
+						<td class="total">{!! number_format($vendor_items->where('vendor', 'VENDOR-C')->sum('scan_3')) !!}</td>
+					</tr>
+				@endif
+				</tbody>
+				@if (count($qc) > 0)
+					<tr class="success">
+						<td colspan=9>Quality Control</td>
+						<td align="right">{{ sprintf("%4.2f", $qc->sum('items_count') / $total * 100) }}%</td>
+					</tr>
+
+					@foreach($qc as $station)
+						<tr class="lines">
+							<td>
+								<a href = "{!! url(sprintf("/production/status_detail?station=%s", $station->station_id)) !!}" target = "_blank">{{ $station->station_name }}</a>
+							</td>
+							<td>{{ $station->station_description }}</td>
+							<td class="data">{{ number_format($station->lines_count) }}</td>
+							<td class="data">{{ number_format($station->items_count) }}</td>
+							<td class="databorder">
+								@if ($station->order_1 > 0)
+									<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&start_date=%s&end_date=%s&store=%s&status=1",
+																	$station->station_name, $date[1], $date[0], $store_link)) !!}" target="_blank">{{ number_format($station->order_1) }}</a>
+								@else
+									{{ $station->order_1 }}
+								@endif
+							</td>
+							<td class="data">
+								@if ($station->order_2 > 0)
+									<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&start_date=%s&end_date=%s&store=%s&status=1",
+																$station->station_name, $date[3], $date[2], $store_link)) !!}" target="_blank">{{ number_format($station->order_2) }}</a>
+								@else
+									{{ $station->order_2 }}
+								@endif
+							</td>
+							<td class="data">
+								@if ($station->order_3 > 0)
+									<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&start_date=%s&end_date=%s&store=%s&status=1",
+																$station->station_name, $station->earliest_order_date, $date[4], $store_link)) !!}" target="_blank">{{ number_format($station->order_3) }}</a>
+								@else
+									{{ $station->order_3 }}
+								@endif
+							</td>
+
+							<td class="databorder">
+								@if ($station->scan_1 > 0)
+									<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&scan_start_date=%s&scan_end_date=%s&store=%s&status=1",
+																$station->station_name, $date[1], $date[0], $store_link)) !!}" target = "_blank">{{ number_format($station->scan_1) }}</a>
+								@else
+									{{ $station->scan_1 }}
+								@endif
+							</td>
+							<td class="data">
+								@if ($station->scan_2 > 0)
+									<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&scan_start_date=%s&scan_end_date=%s&store=%s&status=1",
+																$station->station_name, $date[3], $date[2], $store_link)) !!}" target = "_blank">{{ number_format($station->scan_2) }}</a>
+								@else
+									{{ $station->scan_2 }}
+								@endif
+							</td>
+							<td class="data">
+								@if ($station->scan_3 > 0)
+									<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&scan_start_date=%s&scan_end_date=%s&store=%s&status=1",
+																$station->station_name, $station->earliest_scan_date, $date[4], $store_link)) !!}" target = "_blank">{{ number_format($station->scan_3) }}</a>
+								@else
+									{{ $station->scan_3 }}
+								@endif
+							</td>
+						</tr>
+					@endforeach
+
+					<tr>
+						<td></td>
+						<td align="right">Quality Control SubTotals:</td>
+						<td class="total">{!! number_format($qc->sum('lines_count')) !!}</td>
+						<td class="total">{!! number_format($qc->sum('items_count')) !!}</td>
+						<td class="totalborder">{!! number_format($qc->sum('order_1')) !!}</td>
+						<td class="total">{!! number_format($qc->sum('order_2')) !!}</td>
+						<td class="total">{!! number_format($qc->sum('order_3')) !!}</td>
+						<td class="totalborder">{!! number_format($qc->sum('scan_1')) !!}</td>
+						<td class="total">{!! number_format($qc->sum('scan_2')) !!}</td>
+						<td class="total">{!! number_format($qc->sum('scan_3')) !!}</td>
+					</tr>
+				@endif
+				@if (count($WAP) > 0)
+					<tr class="total_footer">
+						<td></td>
+						<td align="right">WAP</td>
+						<td class="data">{!! number_format($WAP->lines_count) !!}</td>
+						<td class="data">{!! number_format($WAP->items_count) !!}</td>
+						<td class="databorder">
+							<a href="{!! url(sprintf("/items?start_date=%s&end_date=%s&store=%s&status=9", $date[1], $date[0], $store_link)) !!}"
+							   target = "_blank">{!! number_format($WAP->order_1) !!}</a>
+						</td>
+						<td class="data">
+							<a href="{!! url(sprintf("/items?start_date=%s&end_date=%s&store=%s&status=9", $date[3], $date[2], $store_link)) !!}"
+							   target = "_blank">{!! number_format($WAP->order_2) !!}</a>
+						</td>
+						<td class="data">
+							<a href="{!! url(sprintf("/items?start_date=%s&end_date=%s&store=%s&status=9", $WAP->earliest_order_date, $date[4], $store_link)) !!}"
+							   target = "_blank">{!! number_format($WAP->order_3) !!}</a>
+						</td>
+						<td class="databorder" colspan="3"></td>
+					</tr>
+				@endif
+			@else
         <tbody>
 
 			@if (count($CS) > 0 || count($CS_rejects) > 0)
@@ -166,7 +579,7 @@
 					<td colspan=9>Customer Service</td>
 					<td align="right">{{ sprintf("%4.2f", ($CS_rejects->sum('items_count') + $CS->sum('items_count')) / $total * 100) }}%</td>
 				</tr>
-				
+
 				@foreach($CS as $service)
 				<tr class="lines">
 					<td colspan=2>{{ $order_statuses[$service->order_status] }} ({{ $service->orders_count }} orders)
@@ -174,7 +587,7 @@
 					<td class="data">{{ number_format($service->items_count) }}</td>
 					<td class="databorder">{{ number_format($service->order_1) }}</td>
 					<td class="databorder">{{ number_format($service->order_2) }}</td>
-					<td class="databorder">{{ number_format($service->order_3) }}</td>			
+					<td class="databorder">{{ number_format($service->order_3) }}</td>
 					<td class="databorder" colspan="3"></td>
 				</tr>
 				@endforeach
@@ -256,7 +669,7 @@
 					<td class="data">{{ number_format($service->items_count) }}</td>
 					<td class="databorder">{{ number_format($service->order_1) }}</td>
 					<td class="databorder">{{ number_format($service->order_2) }}</td>
-					<td class="databorder">{{ number_format($service->order_3) }}</td>			
+					<td class="databorder">{{ number_format($service->order_3) }}</td>
 					<td class="databorder" colspan="3"></td>
 				</tr>
 				@endforeach
@@ -282,13 +695,13 @@
 					<td class="databorder" colspan="3"></td>
 				</tr>
 			@endif
-			
+
 			@if (count($backorders) > 0)
 				<tr class="success">
 					<td colspan=9>Back Orders</td>
 					<td align="right">{{ sprintf("%4.2f", $backorders->sum('items_count') / $total * 100) }}%</td>
 				</tr>
-				
+
 				@foreach($backorders as $backorder)
 				<tr class="lines">
 					<td></td>
@@ -297,13 +710,13 @@
 					<td class="data">{{ number_format($backorder->items_count) }}</td>
 					<td class="databorder">{{ number_format($backorder->order_1) }}</td>
 					<td class="databorder">{{ number_format($backorder->order_2) }}</td>
-					<td class="databorder">{{ number_format($backorder->order_3) }}</td>		
+					<td class="databorder">{{ number_format($backorder->order_3) }}</td>
 					<td class="databorder">{{ number_format($backorder->scan_1) }}</td>
 					<td class="databorder">{{ number_format($backorder->scan_2) }}</td>
-					<td class="databorder">{{ number_format($backorder->scan_3) }}</td>	
+					<td class="databorder">{{ number_format($backorder->scan_3) }}</td>
 				</tr>
 				@endforeach
-				
+
 				<tr>
 					<td></td>
 					<td align="right">Backorder SubTotals:</td>
@@ -317,13 +730,13 @@
 					<td class="total">{!! number_format($backorders->sum('scan_3')) !!}</td>
 				</tr>
 			@endif
-			
+
 			@if (count($rejects) > 0)
 				<tr class="success">
 					<td colspan=9>Rejects</td>
 					<td align="right">{{ sprintf("%4.2f", $rejects->sum('items_count') / $total * 100) }}%</td>
 				</tr>
-				
+
 				@foreach($rejects as $reject)
 				<tr class="lines">
 					<td>{{ $reject->section_name }}
@@ -332,13 +745,13 @@
 					<td class="data">{{ number_format($reject->items_count) }}</td>
 					<td class="databorder">{{ number_format($reject->order_1) }}</td>
 					<td class="databorder">{{ number_format($reject->order_2) }}</td>
-					<td class="databorder">{{ number_format($reject->order_3) }}</td>			
+					<td class="databorder">{{ number_format($reject->order_3) }}</td>
 					<td class="databorder">{{ number_format($reject->scan_1) }}</td>
 					<td class="databorder">{{ number_format($reject->scan_2) }}</td>
-					<td class="databorder">{{ number_format($reject->scan_3) }}</td>		
+					<td class="databorder">{{ number_format($reject->scan_3) }}</td>
 				</tr>
 				@endforeach
-				
+
 				<tr>
 					<td></td>
 					<td align="right">Reject SubTotals:</td>
@@ -352,8 +765,14 @@
 					<td class="total">{!! number_format($rejects->sum('scan_3')) !!}</td>
 				</tr>
 			@endif
-			
+
 		@if (count($items) > 0)
+			<?php
+				$vendor_A_valid = false;
+				$vendor_B_valid = false;
+				$vendor_C_valid = false;
+				$no_vendor_valid = false;
+			?>
 			@foreach($items as $summary)
 				@if ($section != $summary->section_id)
 					@if ($section != 'start')
@@ -373,84 +792,462 @@
 
 					@setvar($section = $summary->section_id)
 					@setvar($section_name = $summary->section_name)
-					
+
 					<tr class="success">
 						@if ($summary->section_id == '0')
 							<td colspan="9">Unassigned</td>
 						@else
-							<td colspan="9">{{ $summary->section_name }}</td>
+							<td colspan="9">{{ $summary->section_name }} </td>
 						@endif
 						<td align="right">{{ sprintf("%4.2f", $items->where('section_id', $section)->sum('items_count') / $total * 100) }}%</td>
 					</tr>
 				@endif
 				@if(!in_array($summary->station_name, ["S-Wait_for_Pic", "S-GGR-INDIA"]))
-				<tr class="lines">
-					<td>
-						<a href = "{!! url(sprintf("/production/status_detail?station=%s", $summary->station_id)) !!}" target = "_blank">{{ $summary->station_name }}</a>
-					</td>
-					<td>
-						{{ $summary->station_description }}
-					</td>
-					<td class="data">
-						{!! Form::open(['method' => 'post', 'url' => '/move_next', 'target' => '_blank']) !!}
-						{!! Form::hidden('station',  $summary['station_id']) !!}
-						{!! Form::submit(number_format($summary->lines_count), ['class' => 'remove_button_css']) !!}
-						{!! Form::close() !!}
-					</td>
-					<td class="data">{{ number_format($summary->items_count) }}</td>
-					<td class="databorder">
-							@if ($summary->order_1 > 0)
-								<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&start_date=%s&end_date=%s&store=%s&status=1", 
+					@if($summary->section_name == 'Sublimation')
+						<?php
+							$Grand_lines_count = 0;
+							$lines_count = number_format($summary->lines_count);
+							$vendor_A_count = !empty($summary->vendor_A_count) ? $summary->vendor_A_count : 0;
+							$vendor_B_count = !empty($summary->vendor_B_count) ? $summary->vendor_B_count : 0;
+							$vendor_C_count = !empty($summary->vendor_C_count) ? $summary->vendor_C_count : 0;
+							$total_lines_count = $lines_count - ($vendor_A_count + $vendor_B_count + $vendor_C_count);
+						?>
+						@if($total_lines_count > 0)
+							<tr class="lines">
+								<td>
+									<a href = "{!! url(sprintf("/production/status_detail?station=%s", $summary->station_id)) !!}" target = "_blank">{{ $summary->station_name }}</a>
+								</td>
+								<td>
+									{{ $summary->station_description }}
+								</td>
+								<td class="data">
+									{!! Form::open(['method' => 'post', 'url' => '/move_next', 'target' => '_blank']) !!}
+									{!! Form::hidden('station',  $summary['station_id']) !!}
+									{!! Form::submit(number_format($total_lines_count), ['class' => 'remove_button_css']) !!}
+									{!! Form::close() !!}
+								</td>
+								<td class="data">{{ number_format($total_lines_count) }}</td>
+								<td class="databorder">
+									@if ($summary->order_1 > 0)
+										<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&start_date=%s&end_date=%s&store=%s&status=1",
+																		$summary->station_name, $date[1], $date[0], $store_link)) !!}" target="_blank">{{ number_format($summary->order_1) }}</a>
+									@else
+										{{ $summary->order_1 }}
+									@endif
+								</td>
+								<td class="data">
+									@if ($summary->order_2 > 0)
+										<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&start_date=%s&end_date=%s&store=%s&status=1",
+																	$summary->station_name, $date[3], $date[2], $store_link)) !!}" target="_blank">{{ number_format($summary->order_2) }}</a>
+									@else
+										{{ $summary->order_2 }}
+									@endif
+								</td>
+								<td class="data">
+									@if ($summary->order_3 > 0)
+										<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&start_date=%s&end_date=%s&store=%s&status=1",
+																	$summary->station_name, $summary->earliest_order_date, $date[4], $store_link)) !!}" target="_blank">{{ number_format($summary->order_3) }}</a>
+									@else
+										{{ $summary->order_3 }}
+									@endif
+								</td>
+
+								<td class="databorder">
+									@if ($summary->scan_1 > 0)
+										<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&scan_start_date=%s&scan_end_date=%s&store=%s&status=1",
+																	$summary['station_name'], $date[1], $date[0], $store_link)) !!}" target = "_blank">{{ number_format($summary->scan_1) }}</a>
+									@else
+										{{ $summary->scan_1 }}
+									@endif
+								</td>
+								<td class="data">
+									@if ($summary->scan_2 > 0)
+										<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&scan_start_date=%s&scan_end_date=%s&store=%s&status=1",
+																	$summary['station_name'], $date[3], $date[2], $store_link)) !!}" target = "_blank">{{ number_format($summary->scan_2) }}</a>
+									@else
+										{{ $summary->scan_2 }}
+									@endif
+								</td>
+								<td class="data">
+									@if ($summary->scan_3 > 0)
+										<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&scan_start_date=%s&scan_end_date=%s&store=%s&status=1",
+																	$summary['station_name'], $summary->earliest_scan_date, $date[4], $store_link)) !!}" target = "_blank">{{ number_format($summary->scan_3) }}</a>
+									@else
+										{{ $summary->scan_3 }}
+									@endif
+								</td>
+							</tr>
+						@endif
+					@else
+						<tr class="lines">
+							<td>
+								<a href = "{!! url(sprintf("/production/status_detail?station=%s", $summary->station_id)) !!}" target = "_blank">{{ $summary->station_name }}</a>
+							</td>
+							<td>
+								{{ $summary->station_description }}
+							</td>
+							<td class="data">
+								{!! Form::open(['method' => 'post', 'url' => '/move_next', 'target' => '_blank']) !!}
+								{!! Form::hidden('station',  $summary['station_id']) !!}
+								{!! Form::submit(number_format($summary->lines_count), ['class' => 'remove_button_css']) !!}
+								{!! Form::close() !!}
+							</td>
+							<td class="data">{{ number_format($summary->items_count) }}</td>
+							<td class="databorder">
+								@if ($summary->order_1 > 0)
+									<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&start_date=%s&end_date=%s&store=%s&status=1",
 															$summary->station_name, $date[1], $date[0], $store_link)) !!}" target="_blank">{{ number_format($summary->order_1) }}</a>
-							@else 
-								{{ $summary->order_1 }}
-							@endif
-					</td>
-					<td class="data">
-						@if ($summary->order_2 > 0)
-							<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&start_date=%s&end_date=%s&store=%s&status=1", 
+								@else
+									{{ $summary->order_1 }}
+								@endif
+							</td>
+							<td class="data">
+								@if ($summary->order_2 > 0)
+									<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&start_date=%s&end_date=%s&store=%s&status=1",
 														$summary->station_name, $date[3], $date[2], $store_link)) !!}" target="_blank">{{ number_format($summary->order_2) }}</a>
-						@else 
-							{{ $summary->order_2 }}
-						@endif
-					</td>
-					<td class="data">
-						@if ($summary->order_3 > 0)
-							<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&start_date=%s&end_date=%s&store=%s&status=1", 
+								@else
+									{{ $summary->order_2 }}
+								@endif
+							</td>
+							<td class="data">
+								@if ($summary->order_3 > 0)
+									<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&start_date=%s&end_date=%s&store=%s&status=1",
 														$summary->station_name, $summary->earliest_order_date, $date[4], $store_link)) !!}" target="_blank">{{ number_format($summary->order_3) }}</a>
-						@else 
-							{{ $summary->order_3 }}
-						@endif
-					</td>
-								
-					<td class="databorder">
-						@if ($summary->scan_1 > 0)
-							<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&scan_start_date=%s&scan_end_date=%s&store=%s&status=1", 
+								@else
+									{{ $summary->order_3 }}
+								@endif
+							</td>
+
+							<td class="databorder">
+								@if ($summary->scan_1 > 0)
+									<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&scan_start_date=%s&scan_end_date=%s&store=%s&status=1",
 														$summary['station_name'], $date[1], $date[0], $store_link)) !!}" target = "_blank">{{ number_format($summary->scan_1) }}</a>
-						@else 
-								{{ $summary->scan_1 }}
-						@endif
-					</td>
-					<td class="data">
-						@if ($summary->scan_2 > 0)
-							<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&scan_start_date=%s&scan_end_date=%s&store=%s&status=1", 
+								@else
+									{{ $summary->scan_1 }}
+								@endif
+							</td>
+							<td class="data">
+								@if ($summary->scan_2 > 0)
+									<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&scan_start_date=%s&scan_end_date=%s&store=%s&status=1",
 														$summary['station_name'], $date[3], $date[2], $store_link)) !!}" target = "_blank">{{ number_format($summary->scan_2) }}</a>
-						@else 
-								{{ $summary->scan_2 }}
-						@endif
-					</td>
-					<td class="data">
-						@if ($summary->scan_3 > 0)
-							<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&scan_start_date=%s&scan_end_date=%s&store=%s&status=1", 
+								@else
+									{{ $summary->scan_2 }}
+								@endif
+							</td>
+							<td class="data">
+								@if ($summary->scan_3 > 0)
+									<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&scan_start_date=%s&scan_end_date=%s&store=%s&status=1",
 														$summary['station_name'], $summary->earliest_scan_date, $date[4], $store_link)) !!}" target = "_blank">{{ number_format($summary->scan_3) }}</a>
-						@else 
-								{{ $summary->scan_3 }}
-						@endif
-					</td>
-				</tr>
+								@else
+									{{ $summary->scan_3 }}
+								@endif
+							</td>
+						</tr>
+					@endif
 				@endif
 			@endforeach
-			
+			<?php
+				$vendor_A_count = 0;
+				$vendor_B_count = 0;
+				$vendor_C_count = 0;
+			?>
+			@foreach($vendor_items as $vendor_item)
+
+				<?php
+					$vendor_A_count = !empty($vendor_item->vendor_A_count) ? $vendor_item->vendor_A_count : 0;
+				?>
+
+				@if($vendor_A_count > 0)
+					@if(!$vendor_A_valid)
+						<?php
+							$vendor_A_valid = true;
+						?>
+						<tr class="success">
+							<td colspan="10">Vendor - A</td>
+						</tr>
+					@endif
+
+					<tr class="lines">
+						<td>
+							<a href = "{!! url(sprintf("/production/status_detail?station=%s", $vendor_item->station_id)) !!}" target = "_blank">{{ $vendor_item->station_name }}</a>
+						</td>
+						<td>
+							{{ $vendor_item->station_description }}
+						</td>
+						<td class="data">
+							{!! Form::open(['method' => 'post', 'url' => '/move_next', 'target' => '_blank']) !!}
+							{!! Form::hidden('station',  $vendor_item['station_id']) !!}
+							{!! Form::hidden('vendor',  'VENDOR-A') !!}
+							{!! Form::submit($vendor_A_count, ['class' => 'remove_button_css']) !!}
+							{!! Form::close() !!}
+						</td>
+						<td class="data">{{ number_format($vendor_item->items_count) }}</td>
+						<td class="databorder">
+							@if ($vendor_item->order_1 > 0)
+								<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&start_date=%s&end_date=%s&store=%s&status=1",
+																				$vendor_item->station_name, $date[1], $date[0], $store_link)) !!}" target="_blank">{{ number_format($vendor_item->order_1) }}</a>
+							@else
+								{{ $vendor_item->order_1 }}
+							@endif
+						</td>
+						<td class="data">
+							@if ($vendor_item->order_2 > 0)
+								<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&start_date=%s&end_date=%s&store=%s&status=1",
+																			$vendor_item->station_name, $date[3], $date[2], $store_link)) !!}" target="_blank">{{ number_format($vendor_item->order_2) }}</a>
+							@else
+								{{ $vendor_item->order_2 }}
+							@endif
+						</td>
+						<td class="data">
+							@if ($vendor_item->order_3 > 0)
+								<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&start_date=%s&end_date=%s&store=%s&status=1",
+																			$vendor_item->station_name, $vendor_item->earliest_order_date, $date[4], $store_link)) !!}" target="_blank">{{ number_format($vendor_item->order_3) }}</a>
+							@else
+								{{ $vendor_item->order_3 }}
+							@endif
+						</td>
+
+						<td class="databorder">
+							@if ($vendor_item->scan_1 > 0)
+								<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&scan_start_date=%s&scan_end_date=%s&store=%s&status=1",
+																			$vendor_item['station_name'], $date[1], $date[0], $store_link)) !!}" target = "_blank">{{ number_format($vendor_item->scan_1) }}</a>
+							@else
+								{{ $vendor_item->scan_1 }}
+							@endif
+						</td>
+						<td class="data">
+							@if ($vendor_item->scan_2 > 0)
+								<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&scan_start_date=%s&scan_end_date=%s&store=%s&status=1",
+																			$vendor_item['station_name'], $date[3], $date[2], $store_link)) !!}" target = "_blank">{{ number_format($vendor_item->scan_2) }}</a>
+							@else
+								{{ $vendor_item->scan_2 }}
+							@endif
+						</td>
+						<td class="data">
+							@if ($vendor_item->scan_3 > 0)
+								<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&scan_start_date=%s&scan_end_date=%s&store=%s&status=1",
+																			$vendor_item['station_name'], $vendor_item->earliest_scan_date, $date[4], $store_link)) !!}" target = "_blank">{{ number_format($vendor_item->scan_3) }}</a>
+							@else
+								{{ $vendor_item->scan_3 }}
+							@endif
+						</td>
+					</tr>
+				@endif
+			@endforeach
+			@if($vendor_A_valid )
+				<tr>
+					<td></td>
+
+					<td align="right"><b>Vendor-A</b> Totals: ------</td>
+
+					<td class="total">{!! number_format($vendor_items->where('vendor', 'VENDOR-A')->sum('vendor_A_count')) !!}</td>
+					<td class="total">{!! number_format($vendor_items->where('vendor', 'VENDOR-A')->sum('items_count')) !!}</td>
+					<td class="totalborder">{!! number_format($vendor_items->where('vendor', 'VENDOR-A')->sum('order_1')) !!}</td>
+					<td class="total">{!! number_format($vendor_items->where('vendor', 'VENDOR-A')->sum('order_2')) !!}</td>
+					<td class="total">{!! number_format($vendor_items->where('vendor', 'VENDOR-A')->sum('order_3')) !!}</td>
+					<td class="totalborder">{!! number_format($vendor_items->where('vendor', 'VENDOR-A')->sum('scan_1')) !!}</td>
+					<td class="total">{!! number_format($vendor_items->where('vendor', 'VENDOR-A')->sum('scan_2')) !!}</td>
+					<td class="total">{!! number_format($vendor_items->where('vendor', 'VENDOR-A')->sum('scan_3')) !!}</td>
+				</tr>
+			@endif
+			@foreach($vendor_items as $vendor_item)
+					<?php
+					$vendor_B_count = !empty($vendor_item->vendor_B_count) ? $vendor_item->vendor_B_count : 0;
+					?>
+				@if($vendor_B_count > 0)
+					@if(!$vendor_B_valid)
+							<?php
+							$vendor_B_valid = true;
+							?>
+						<tr class="success">
+							<td colspan="10">Vendor - B</td>
+						</tr>
+					@endif
+
+					<tr class="lines">
+						<td>
+							<a href = "{!! url(sprintf("/production/status_detail?station=%s", $vendor_item->station_id)) !!}" target = "_blank">{{ $vendor_item->station_name }}</a>
+						</td>
+						<td>
+							{{ $vendor_item->station_description }}
+						</td>
+						<td class="data">
+							{!! Form::open(['method' => 'post', 'url' => '/move_next', 'target' => '_blank']) !!}
+							{!! Form::hidden('station',  $vendor_item['station_id']) !!}
+							{!! Form::hidden('vendor',  'VENDOR-B') !!}
+							{!! Form::submit($vendor_B_count, ['class' => 'remove_button_css']) !!}
+							{!! Form::close() !!}
+						</td>
+						<td class="data">{{ number_format($vendor_item->items_count) }}</td>
+						<td class="databorder">
+							@if ($vendor_item->order_1 > 0)
+								<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&start_date=%s&end_date=%s&store=%s&status=1",
+																				$vendor_item->station_name, $date[1], $date[0], $store_link)) !!}" target="_blank">{{ number_format($vendor_item->order_1) }}</a>
+							@else
+								{{ $vendor_item->order_1 }}
+							@endif
+						</td>
+						<td class="data">
+							@if ($vendor_item->order_2 > 0)
+								<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&start_date=%s&end_date=%s&store=%s&status=1",
+																			$vendor_item->station_name, $date[3], $date[2], $store_link)) !!}" target="_blank">{{ number_format($vendor_item->order_2) }}</a>
+							@else
+								{{ $vendor_item->order_2 }}
+							@endif
+						</td>
+						<td class="data">
+							@if ($vendor_item->order_3 > 0)
+								<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&start_date=%s&end_date=%s&store=%s&status=1",
+																			$vendor_item->station_name, $vendor_item->earliest_order_date, $date[4], $store_link)) !!}" target="_blank">{{ number_format($vendor_item->order_3) }}</a>
+							@else
+								{{ $vendor_item->order_3 }}
+							@endif
+						</td>
+
+						<td class="databorder">
+							@if ($vendor_item->scan_1 > 0)
+								<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&scan_start_date=%s&scan_end_date=%s&store=%s&status=1",
+																			$vendor_item['station_name'], $date[1], $date[0], $store_link)) !!}" target = "_blank">{{ number_format($vendor_item->scan_1) }}</a>
+							@else
+								{{ $vendor_item->scan_1 }}
+							@endif
+						</td>
+						<td class="data">
+							@if ($vendor_item->scan_2 > 0)
+								<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&scan_start_date=%s&scan_end_date=%s&store=%s&status=1",
+																			$vendor_item['station_name'], $date[3], $date[2], $store_link)) !!}" target = "_blank">{{ number_format($vendor_item->scan_2) }}</a>
+							@else
+								{{ $vendor_item->scan_2 }}
+							@endif
+						</td>
+						<td class="data">
+							@if ($vendor_item->scan_3 > 0)
+								<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&scan_start_date=%s&scan_end_date=%s&store=%s&status=1",
+																			$vendor_item['station_name'], $vendor_item->earliest_scan_date, $date[4], $store_link)) !!}" target = "_blank">{{ number_format($vendor_item->scan_3) }}</a>
+							@else
+								{{ $vendor_item->scan_3 }}
+							@endif
+						</td>
+					</tr>
+				@endif
+			@endforeach
+			@if($vendor_B_valid)
+				<tr>
+					<td></td>
+
+					<td align="right"><b>Vendor-B</b> Totals: ------</td>
+
+					<td class="total">{!! number_format($vendor_items->where('vendor', 'VENDOR-B')->sum('vendor_B_count')) !!}</td>
+					<td class="total">{!! number_format($vendor_items->where('vendor', 'VENDOR-B')->sum('items_count')) !!}</td>
+					<td class="totalborder">{!! number_format($vendor_items->where('vendor', 'VENDOR-B')->sum('order_1')) !!}</td>
+					<td class="total">{!! number_format($vendor_items->where('vendor', 'VENDOR-B')->sum('order_2')) !!}</td>
+					<td class="total">{!! number_format($vendor_items->where('vendor', 'VENDOR-B')->sum('order_3')) !!}</td>
+					<td class="totalborder">{!! number_format($vendor_items->where('vendor', 'VENDOR-B')->sum('scan_1')) !!}</td>
+					<td class="total">{!! number_format($vendor_items->where('vendor', 'VENDOR-B')->sum('scan_2')) !!}</td>
+					<td class="total">{!! number_format($vendor_items->where('vendor', 'VENDOR-B')->sum('scan_3')) !!}</td>
+				</tr>
+			@endif
+			@foreach($vendor_items as $vendor_item)
+				<?php
+					$vendor_C_count = !empty($vendor_item->vendor_C_count) ? $vendor_item->vendor_C_count : 0;
+				?>
+				@if($vendor_C_count > 0)
+					@if(!$vendor_C_valid)
+							<?php
+							$vendor_C_valid = true;
+							?>
+						<tr class="success">
+							<td colspan="10">Vendor - C</td>
+						</tr>
+					@endif
+
+					<tr class="lines">
+						<td>
+							<a href = "{!! url(sprintf("/production/status_detail?station=%s", $vendor_item->station_id)) !!}" target = "_blank">{{ $vendor_item->station_name }}</a>
+						</td>
+						<td>
+							{{ $vendor_item->station_description }}
+						</td>
+						<td class="data">
+							{!! Form::open(['method' => 'post', 'url' => '/move_next', 'target' => '_blank']) !!}
+							{!! Form::hidden('station',  $vendor_item['station_id']) !!}
+							{!! Form::hidden('vendor',  'VENDOR-C') !!}
+							{!! Form::submit($vendor_C_count, ['class' => 'remove_button_css']) !!}
+							{!! Form::close() !!}
+						</td>
+						<td class="data">{{ number_format($vendor_item->items_count) }}</td>
+						<td class="databorder">
+							@if ($vendor_item->order_1 > 0)
+								<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&start_date=%s&end_date=%s&store=%s&status=1",
+																				$vendor_item->station_name, $date[1], $date[0], $store_link)) !!}" target="_blank">{{ number_format($vendor_item->order_1) }}</a>
+							@else
+								{{ $vendor_item->order_1 }}
+							@endif
+						</td>
+						<td class="data">
+							@if ($vendor_item->order_2 > 0)
+								<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&start_date=%s&end_date=%s&store=%s&status=1",
+																			$vendor_item->station_name, $date[3], $date[2], $store_link)) !!}" target="_blank">{{ number_format($vendor_item->order_2) }}</a>
+							@else
+								{{ $vendor_item->order_2 }}
+							@endif
+						</td>
+						<td class="data">
+							@if ($vendor_item->order_3 > 0)
+								<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&start_date=%s&end_date=%s&store=%s&status=1",
+																			$vendor_item->station_name, $vendor_item->earliest_order_date, $date[4], $store_link)) !!}" target="_blank">{{ number_format($vendor_item->order_3) }}</a>
+							@else
+								{{ $vendor_item->order_3 }}
+							@endif
+						</td>
+
+						<td class="databorder">
+							@if ($vendor_item->scan_1 > 0)
+								<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&scan_start_date=%s&scan_end_date=%s&store=%s&status=1",
+																			$vendor_item['station_name'], $date[1], $date[0], $store_link)) !!}" target = "_blank">{{ number_format($vendor_item->scan_1) }}</a>
+							@else
+								{{ $vendor_item->scan_1 }}
+							@endif
+						</td>
+						<td class="data">
+							@if ($vendor_item->scan_2 > 0)
+								<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&scan_start_date=%s&scan_end_date=%s&store=%s&status=1",
+																			$vendor_item['station_name'], $date[3], $date[2], $store_link)) !!}" target = "_blank">{{ number_format($vendor_item->scan_2) }}</a>
+							@else
+								{{ $vendor_item->scan_2 }}
+							@endif
+						</td>
+						<td class="data">
+							@if ($vendor_item->scan_3 > 0)
+								<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&scan_start_date=%s&scan_end_date=%s&store=%s&status=1",
+																			$vendor_item['station_name'], $vendor_item->earliest_scan_date, $date[4], $store_link)) !!}" target = "_blank">{{ number_format($vendor_item->scan_3) }}</a>
+							@else
+								{{ $vendor_item->scan_3 }}
+							@endif
+						</td>
+					</tr>
+				@endif
+			@endforeach
+			@if($vendor_C_valid)
+				<tr>
+				<td></td>
+
+				<td align="right"><b>Vendor-C</b> Totals: ------</td>
+
+				<td class="total">{!! number_format($vendor_items->where('vendor', 'VENDOR-C')->sum('vendor_C_count')) !!}</td>
+				<td class="total">{!! number_format($vendor_items->where('vendor', 'VENDOR-C')->sum('items_count')) !!}</td>
+				<td class="totalborder">{!! number_format($vendor_items->where('vendor', 'VENDOR-C')->sum('order_1')) !!}</td>
+				<td class="total">{!! number_format($vendor_items->where('vendor', 'VENDOR-C')->sum('order_2')) !!}</td>
+				<td class="total">{!! number_format($vendor_items->where('vendor', 'VENDOR-C')->sum('order_3')) !!}</td>
+				<td class="totalborder">{!! number_format($vendor_items->where('vendor', 'VENDOR-C')->sum('scan_1')) !!}</td>
+				<td class="total">{!! number_format($vendor_items->where('vendor', 'VENDOR-C')->sum('scan_2')) !!}</td>
+				<td class="total">{!! number_format($vendor_items->where('vendor', 'VENDOR-C')->sum('scan_3')) !!}</td>
+			</tr>
+			@endif
+
+				<tr class="success">
+					<td colspan=10 height=30></td>
+				</tr>
 				<tr>
 					<td></td>
 					@if ($section == '0')
@@ -469,7 +1266,7 @@
 				</tr>
 
 				</tbody>
-				
+
 				<tfoot>
 					<tr class="success">
 						<td colspan=10 height=30></td>
@@ -496,32 +1293,32 @@
 								<td class="data">{{ number_format($unbatched->items_count) }}</td>
 								<td class="databorder">
 									@if ($unbatched->order_1 > 0)
-										<a href="{!! url(sprintf("/items?start_date=%s&end_date=%s&unbatched=1&store=%s&status=0", $date[1], $date[0], $store_link)) !!}" 
+										<a href="{!! url(sprintf("/items?start_date=%s&end_date=%s&unbatched=1&store=%s&status=0", $date[1], $date[0], $store_link)) !!}"
 															target = "_blank">{{ number_format($unbatched->order_1) }}</a>
-									@else 
+									@else
 										{{ $unbatched->order_1 }}
 									@endif
 								</td>
 								<td class="data">
 									@if ($unbatched->order_2 > 0)
-										<a href="{!! url(sprintf("/items?start_date=%s&end_date=%s&unbatched=1&store=%s&status=0", $date[3], $date[2], $store_link)) !!}" 
+										<a href="{!! url(sprintf("/items?start_date=%s&end_date=%s&unbatched=1&store=%s&status=0", $date[3], $date[2], $store_link)) !!}"
 															target = "_blank">{{ number_format($unbatched->order_2) }}</a>
-									@else 
+									@else
 										{{ $unbatched->order_2 }}
 									@endif
 								</td>
 								<td class="data">
 									@if ($unbatched->order_3 > 0)
-										<a href="{!! url(sprintf("/items?start_date=%s&end_date=%s&unbatched=1&store=%s&status=0", $unbatched->earliest_order_date, $date[4], $store_link)) !!}" 
+										<a href="{!! url(sprintf("/items?start_date=%s&end_date=%s&unbatched=1&store=%s&status=0", $unbatched->earliest_order_date, $date[4], $store_link)) !!}"
 															target = "_blank">{{ number_format($unbatched->order_3) }}</a>
-									@else 
+									@else
 										{{ $unbatched->order_3 }}
 									@endif
 								</td>
 								<td class="databorder" colspan="3"></td>
 					</tr>
 		@endif
-		
+
 		@if (count($items) > 0)
 					<tr class="total_footer">
 						<td></td>
@@ -536,13 +1333,13 @@
 						<td class="total">{!! number_format($items->sum('scan_3') +  $rejects->sum('scan_3')) !!}</td>
 					</tr>
 		@endif
-		
+
 					@if (count($qc) > 0)
 						<tr class="success">
 							<td colspan=9>Quality Control</td>
 							<td align="right">{{ sprintf("%4.2f", $qc->sum('items_count') / $total * 100) }}%</td>
 						</tr>
-						
+
 						@foreach($qc as $station)
 						<tr class="lines">
 							<td>
@@ -553,56 +1350,56 @@
 							<td class="data">{{ number_format($station->items_count) }}</td>
 							<td class="databorder">
 									@if ($station->order_1 > 0)
-										<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&start_date=%s&end_date=%s&store=%s&status=1", 
+										<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&start_date=%s&end_date=%s&store=%s&status=1",
 																	$station->station_name, $date[1], $date[0], $store_link)) !!}" target="_blank">{{ number_format($station->order_1) }}</a>
-									@else 
+									@else
 										{{ $station->order_1 }}
 									@endif
 							</td>
 							<td class="data">
 								@if ($station->order_2 > 0)
-									<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&start_date=%s&end_date=%s&store=%s&status=1", 
+									<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&start_date=%s&end_date=%s&store=%s&status=1",
 																$station->station_name, $date[3], $date[2], $store_link)) !!}" target="_blank">{{ number_format($station->order_2) }}</a>
-								@else 
+								@else
 									{{ $station->order_2 }}
 								@endif
 							</td>
 							<td class="data">
 								@if ($station->order_3 > 0)
-									<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&start_date=%s&end_date=%s&store=%s&status=1", 
+									<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&start_date=%s&end_date=%s&store=%s&status=1",
 																$station->station_name, $station->earliest_order_date, $date[4], $store_link)) !!}" target="_blank">{{ number_format($station->order_3) }}</a>
-								@else 
+								@else
 									{{ $station->order_3 }}
 								@endif
 							</td>
-										
+
 							<td class="databorder">
 								@if ($station->scan_1 > 0)
-									<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&scan_start_date=%s&scan_end_date=%s&store=%s&status=1", 
+									<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&scan_start_date=%s&scan_end_date=%s&store=%s&status=1",
 																$station->station_name, $date[1], $date[0], $store_link)) !!}" target = "_blank">{{ number_format($station->scan_1) }}</a>
-								@else 
+								@else
 										{{ $station->scan_1 }}
 								@endif
 							</td>
 							<td class="data">
 								@if ($station->scan_2 > 0)
-									<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&scan_start_date=%s&scan_end_date=%s&store=%s&status=1", 
+									<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&scan_start_date=%s&scan_end_date=%s&store=%s&status=1",
 																$station->station_name, $date[3], $date[2], $store_link)) !!}" target = "_blank">{{ number_format($station->scan_2) }}</a>
-								@else 
+								@else
 										{{ $station->scan_2 }}
 								@endif
 							</td>
 							<td class="data">
 								@if ($station->scan_3 > 0)
-									<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&scan_start_date=%s&scan_end_date=%s&store=%s&status=1", 
+									<a href="{!! url(sprintf("/items?search_for_first=%s&search_in_first=station_name&search_for_second=2&search_in_second=batch_status&scan_start_date=%s&scan_end_date=%s&store=%s&status=1",
 																$station->station_name, $station->earliest_scan_date, $date[4], $store_link)) !!}" target = "_blank">{{ number_format($station->scan_3) }}</a>
-								@else 
+								@else
 										{{ $station->scan_3 }}
 								@endif
 							</td>
 						</tr>
 						@endforeach
-						
+
 						<tr>
 							<td></td>
 							<td align="right">Quality Control SubTotals:</td>
@@ -616,7 +1413,7 @@
 							<td class="total">{!! number_format($qc->sum('scan_3')) !!}</td>
 						</tr>
 					@endif
-		
+
 		@if (count($WAP) > 0)
 			<tr class="total_footer">
 				<td></td>
@@ -624,53 +1421,53 @@
 				<td class="data">{!! number_format($WAP->lines_count) !!}</td>
 				<td class="data">{!! number_format($WAP->items_count) !!}</td>
 				<td class="databorder">
-					<a href="{!! url(sprintf("/items?start_date=%s&end_date=%s&store=%s&status=9", $date[1], $date[0], $store_link)) !!}" 
+					<a href="{!! url(sprintf("/items?start_date=%s&end_date=%s&store=%s&status=9", $date[1], $date[0], $store_link)) !!}"
 										target = "_blank">{!! number_format($WAP->order_1) !!}</a>
 				</td>
 				<td class="data">
-					<a href="{!! url(sprintf("/items?start_date=%s&end_date=%s&store=%s&status=9", $date[3], $date[2], $store_link)) !!}" 
+					<a href="{!! url(sprintf("/items?start_date=%s&end_date=%s&store=%s&status=9", $date[3], $date[2], $store_link)) !!}"
 										target = "_blank">{!! number_format($WAP->order_2) !!}</a>
 				</td>
 				<td class="data">
-					<a href="{!! url(sprintf("/items?start_date=%s&end_date=%s&store=%s&status=9", $WAP->earliest_order_date, $date[4], $store_link)) !!}" 
+					<a href="{!! url(sprintf("/items?start_date=%s&end_date=%s&store=%s&status=9", $WAP->earliest_order_date, $date[4], $store_link)) !!}"
 										target = "_blank">{!! number_format($WAP->order_3) !!}</a>
 				</td>
 				<td class="databorder" colspan="3"></td>
 			</tr>
 		@endif
-		
+
 		<tr class="success">
 			<td colspan=10 height="30"></td>
 		</tr>
 		<tr class="total_footer">
 			<td></td>
 			<td align="right"><strong>Totals:</strong></td>
-			<td class="total">{{ number_format( $items->sum('lines_count') + $backorders->sum('lines_count') +  $rejects->sum('lines_count') + 
-                              $CS_rejects->sum('lines_count') + $CS->sum('lines_count') + $qc->sum('lines_count') + 
+			<td class="total">{{ number_format( $items->sum('lines_count') + $backorders->sum('lines_count') +  $rejects->sum('lines_count') +
+                              $CS_rejects->sum('lines_count') + $CS->sum('lines_count') + $qc->sum('lines_count') +
                               $unbatched->lines_count + $WAP->lines_count) }}</td>
-			<td class="total">{{ number_format($items->sum('items_count') + $backorders->sum('items_count') +  $rejects->sum('items_count') + 
-                              $CS_rejects->sum('items_count') + $CS->sum('items_count') + $qc->sum('items_count') + 
+			<td class="total">{{ number_format($items->sum('items_count') + $backorders->sum('items_count') +  $rejects->sum('items_count') +
+                              $CS_rejects->sum('items_count') + $CS->sum('items_count') + $qc->sum('items_count') +
                               $unbatched->items_count + $WAP->items_count) }}</td>
-			<td class="totalborder">{{ number_format($items->sum('order_1') + $backorders->sum('order_1') +  $rejects->sum('order_1') + $CS_rejects->sum('order_1') + 
+			<td class="totalborder">{{ number_format($items->sum('order_1') + $backorders->sum('order_1') +  $rejects->sum('order_1') + $CS_rejects->sum('order_1') +
                           $CS->sum('order_1') + $qc->sum('order_1') + $unbatched->order_1 + $WAP->order_1) }}</td>
-			<td class="total">{{ number_format($items->sum('order_2') + $backorders->sum('order_2') +  $rejects->sum('order_2') + $CS_rejects->sum('order_2') + 
+			<td class="total">{{ number_format($items->sum('order_2') + $backorders->sum('order_2') +  $rejects->sum('order_2') + $CS_rejects->sum('order_2') +
                           $CS->sum('order_2') + $qc->sum('order_2') + $unbatched->order_2 + $WAP->order_2) }}</td>
-			<td class="total">{{ number_format($items->sum('order_3') + $backorders->sum('order_3') +  $rejects->sum('order_3') + $CS_rejects->sum('order_3') + 
+			<td class="total">{{ number_format($items->sum('order_3') + $backorders->sum('order_3') +  $rejects->sum('order_3') + $CS_rejects->sum('order_3') +
                           $CS->sum('order_3') + $qc->sum('order_3') + $unbatched->order_3 + $WAP->order_3) }}</td>
 			<td class="totalborder">{{ number_format($items->sum('scan_1') + $qc->sum('scan_1') + $backorders->sum('scan_1') +  $rejects->sum('scan_1')) }}</td>
 			<td class="total">{{ number_format($items->sum('scan_2') + $qc->sum('scan_2') + $backorders->sum('scan_2') +  $rejects->sum('scan_2')) }}</td>
 			<td class="total">{{ number_format($items->sum('scan_3') + $qc->sum('scan_3') + $backorders->sum('scan_3') +  $rejects->sum('scan_3')) }}</td>
 		</tr>
-		
+
 		<tr class="success">
 			<td colspan=4>Items Shipped Today:</td>
 			<td colspan=2>Average Days to Ship</td>
 			<td colspan=2>Percentage of Total</td>
 			<td colspan=4></td>
 		</tr>
-		
+
 		@setvar($avg_sum = 0)
-		
+
 		@if (count($shipped_today) > 0)
 			@foreach ($shipped_today as $ship)
 				<tr class="lines">
@@ -686,15 +1483,15 @@
 					</td>
 					<td colspan=2></td>
 				</tr>
-				
+
 				@setvar($avg_sum = $avg_sum + ($ship->avgdays * $ship->count))
-				
+
 			@endforeach
 		@endif
-		
+
 		<tr class="total_footer">
 			<td colspan=2 align="right"><strong>Total Shipped:</strong></td>
-			<td class="total">{{ number_format($shipped_today->sum('count')) }}</td> 
+			<td class="total">{{ number_format($shipped_today->sum('count')) }}</td>
 			<td></td>
 			<td class="total" colspan=2>
 				@if ($shipped_today->sum('count') > 0)
@@ -703,13 +1500,14 @@
 			</td>
 			<td colspan=7>
 		</tr>
-		
+
 		<tr class="success">
 			<td colspan=10 height="30"></td>
 		</tr>
-		
-		
+
+
 	</tfoot>
+			@endif
 </table>
 
 	</div>

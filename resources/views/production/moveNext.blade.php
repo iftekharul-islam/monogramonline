@@ -135,13 +135,11 @@
 						<th>Select All</th>
 						<th>Batch Date</th>
 						<th>Min. Order Date</th>
-						<th style="width:180px;">Station</th>
+						<th style="width:180px;">Current Station</th>
 						<th style="width:180px;">Next Station</th>
 						<th>Route</th>
-						<th style="width:30px;">Lines</th>
+{{--						<th>Lines</th>--}}
 						<th>Image</th>
-						<th style="width:250px;">	
-						</th>
 					</tr>
 				</thead>
 				 <tbody>					
@@ -165,17 +163,24 @@
 							</td>
 							<td>{{ $batch->creation_date }}</td>
 							<td>{{ $batch->min_order_date }}</td>
-							<td>{{ $batch->station->station_name }} - {{ $batch->station->station_description }}</td>
-							<td>{{ isset($next_in_route[$batch->batch_route_id]) && $next_in_route[$batch->batch_route_id] }}</td>
 							<td>
-								<span data-toggle = "tooltip" data-placement = "top" 
-											title = "{{$batch->route->batch_route_name}}">{{ $batch->route->batch_code }}</span>
+								<b>{{ $batch->first_item->vendor }}</b>
+								<br>
+								{{ $batch->station->station_name }} - {{ $batch->station->station_description }}
 							</td>
 							<td>
-								@if (count($batch->itemsCount) > 0)
-									{{ $batch->itemsCount->first()->count }}
+								@if(isset($next_in_route[$batch->batch_route_id]))
+									{{ $next_in_route[$batch->batch_route_id] }}
 								@endif
 							</td>
+							<td>
+								<span>{{ $batch->route->batch_code }} <strong>{{$batch->route->batch_route_name}}</strong></span>
+							</td>
+{{--							<td>--}}
+{{--								@if (count($batch->itemsCount) > 0)--}}
+{{--									{{ $batch->itemsCount->first()->count }}--}}
+{{--								@endif--}}
+{{--							</td>--}}
 							<td>
 								@if (count($batch->first_item) > 0)
 								  <span data-toggle = "tooltip" data-placement = "top"
@@ -187,6 +192,8 @@
 							<td>
 								@if (count($batch->first_item) > 0)
 									{{ $batch->first_item->child_sku }}
+									<br>
+									<b>QTY: {{ $batch->first_item->item_quantity }}</b>
 								@endif
 							</td>
 						</tr>

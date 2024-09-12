@@ -50,7 +50,7 @@
             </div>
 
             <div class = "form-group col-xs-12">
-                {!! Form::label('sku_weight', 'Weight', ['class' => 'col-xs-3 control-label']) !!}
+                {!! Form::label('sku_weight', 'Weight (ozs)', ['class' => 'col-xs-3 control-label']) !!}
                 <div class = "col-xs-4">
                     {!! Form::number('sku_weight', $inventory->sku_weight, ['id' => 'sku_weight', 'class' => "form-control", 'min' => '0', 'step' => '.001']) !!}
                 </div>

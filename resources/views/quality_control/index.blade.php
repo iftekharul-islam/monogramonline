@@ -34,9 +34,9 @@
 				<div class = "form-group col-xs-2">
 					{!! Form::text('batch_number', '', ['id'=>'batch_barcode', 'class' => 'form-control', 'placeholder' => 'Enter Batch']) !!}
 				</div>
-				<div class = "form-group col-xs-2">
-					{!! Form::password('user_barcode', ['id'=>'user_barcode', 'class' => 'form-control', 'autocomplete' => "new-password"]) !!}
-				</div>
+{{--				<div class = "form-group col-xs-2">--}}
+{{--					{!! Form::password('user_barcode', ['id'=>'user_barcode', 'class' => 'form-control', 'autocomplete' => "new-password"]) !!}--}}
+{{--				</div>--}}
 				<div class = "form-group col-xs-2">
 					{!! Form::submit('Open Batch', ['id'=>'search', 'style' => 'margin-top: 0px;', 'class' => 'btn btn-primary btn-sm']) !!}
 				</div>
@@ -55,7 +55,8 @@
 							<tr class='info clickable' data='{{ url(sprintf('shipping/qc_list?station_id=%d', $section->station_id)) }}'>
 								<th>
 									@if ($section->section)
-										{{ $section->section->section_name }}
+										{{ $section->section->section_name }} <br>
+										<small>{{ $section->route->batch_route_name }}</small>
 									@else
 										Section not found
 									@endif

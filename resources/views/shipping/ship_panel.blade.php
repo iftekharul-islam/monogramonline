@@ -53,14 +53,18 @@
     <div class="col-xs-12 col-sm-4 col-md-2">
     @if ($order->carrier != null)
         @if ($order->carrier == 'FX')
-          <img src="/assets/images/fedex.jpg">
+            <img src="/assets/images/fedex.jpg" style="height: 100px;">
         @elseif ($order->carrier == 'UP' && !strpos($order->method, 'MAIL_INNOVATIONS'))
-          <img src="/assets/images/ups.jpg">
-        @elseif ($order->carrier == 'US')
-          <img src="/assets/images/usps.jpg">
+            <img src="/assets/images/ups.jpg" style="height: 100px;">
+        @else
+            <img src="/assets/images/usps.jpg" style="height: 100px;">
         @endif
     @else
-      <strong>Ship to:</strong>
+      <strong>
+          Ship to:
+          {!! $shipping_methods[''] !!}
+      </strong>
+            <img src="/assets/images/usps.jpg" style="height: 100px;">
     @endif
     </div>
     <div class="col-xs-12 col-sm-8 col-md-5">
@@ -95,28 +99,32 @@
       @endif
 
     </div>
-    <div class="col-xs-12 col-sm-12 col-md-5" style="text-align:right;padding:0;">
+    <div class="col-xs-12 col-sm-12 col-md-12" style="padding:0;">
       {!! Form::open(['url' => $url, 'method' => 'post']) !!}
-      <table class="table table-condensed borderless" id="packages">
-        <tr>
-          <td>
-            @if ($order->carrier == 'US')
-              {!! Form::label('*Weight:', '', ['style' => 'color:red;']) !!}
-            @else
-              {!! Form::label('Weight:') !!}
-            @endif
-          </td>
-          <td>{!! Form::number('pounds[]', 0, ['id' => 'pounds', 'style' => 'width:50px', 'min' => '0']) !!}</td>
-          <td>lbs</td>
-          <td>{!! Form::number('ounces[]', 0, ['id' => 'ounces', 'style' => 'width:50px', 'min' => '0']) !!}</td>
-          <td>ozs</td>
-          <td>
-            @if ($order->carrier != null && $order->carrier != 'US' && $order->store->multi_carton == 1)
-              <a onclick='addPackage();'><i class = 'glyphicon glyphicon-plus'></i></a>
-              @endif
-          </td>
-        </tr>
-      </table>
+        <div class="row">
+            <div class="col-sm-6 pull-right">
+                <table class="table table-condensed borderless" id="packages">
+                    <tr>
+                        <td>
+                            @if ($order->carrier == 'US')
+                                {!! Form::label('*Weight:', '', ['style' => 'color:red;']) !!}
+                            @else
+                                {!! Form::label('Weight:') !!}
+                            @endif
+                        </td>
+                        <td>{!! Form::number('pounds[]', $weightLBS ?? 0 , ['id' => 'pounds', 'style' => 'width:50px', 'min' => '0']) !!}</td>
+                        <td>lbs</td>
+                        <td>{!! Form::number('ounces[]', $remainingOZS ?? 0, ['id' => 'ounces', 'style' => 'width:50px', 'min' => '0']) !!}</td>
+                        <td>ozs</td>
+                        <td>
+                            @if ($order->carrier != null && $order->carrier != 'US' && $order->store->multi_carton == 1)
+                                <a onclick='addPackage();'><i class = 'glyphicon glyphicon-plus'></i></a>
+                            @endif
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
       <br><br>
       @if(isset($batch))
         {!! Form::hidden('batch_number', $batch->batch_number, ['id' => 'batch_number']) !!}
@@ -132,8 +140,8 @@
       {!! Form::hidden('origin', $origin, ['id' => 'origin']) !!}
       {!! Form::hidden('location', 'FL', ['id' => 'location']) !!}
       {!! Form::hidden('count', count($items), ['id' => 'count']) !!}
-      {!! Form::button($btn_text . ' (FL)', ['value' => 'fl', 'name' => 'submitButton', 'class' => 'pull-right btn btn-lg btn-' . $btn_class, 'id' => 'focus-btn', 'style' => 'margin-top:5px;', 'onclick' => 'setLocation("FL");this.disabled=true;this.form.submit();']) !!}
-      {!! Form::button($btn_text . ' (NY)', ['value' => 'ny', 'name' => 'submitButton', 'class' => 'pull-right btn btn-lg btn-warning', 'id' => 'focus-btn', 'style' => 'margin-top:5px;', 'onclick' => 'setLocation("NY");this.disabled=true;this.form.submit();']) !!}
+      {!! Form::button($btn_text . ' (GA)', ['value' => 'fl', 'name' => 'submitButton', 'class' => 'btn btn-lg btn-' . $btn_class, 'id' => 'focus-btn', 'style' => 'margin-top:5px;', 'onclick' => 'setLocation("FL");this.disabled=true;this.form.submit();']) !!}
+      {!! Form::button($btn_text . ' (NY)', ['value' => 'ny', 'name' => 'submitButton', 'class' => 'btn btn-lg btn-warning', 'id' => 'focus-btn', 'style' => 'margin-top:5px;', 'onclick' => 'setLocation("NY");this.disabled=true;this.form.submit();']) !!}
       {!! Form::close() !!}
     </div>
   </div>

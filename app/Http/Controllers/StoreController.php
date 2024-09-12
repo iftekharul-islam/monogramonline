@@ -23,11 +23,15 @@ use Monogram\Batching;
 
 class StoreController extends Controller
 {
+        protected $vendors = [
+            'VENDOR-A' => 'Vendor-A',
+            'VENDOR-B' => 'Vendor-B',
+            'VENDOR-C' => 'Vendor-C',
+            'VENDOR-D' => 'Vendor-D',
+            'VENDOR-E' => 'Vendor-E'
+        ];
 
 		public static function retrieveData () {
-
-//			$gxs = new GXSConnection;
-//			$gxs->getFiles();
 
 			$stores = Store::where('is_deleted', '0')
 											->orderBy('sort_order')
@@ -51,8 +55,6 @@ class StoreController extends Controller
 
 				}
 			}
-
-//			$gxs->sendFiles();
 		}
 
 
@@ -274,7 +276,7 @@ class StoreController extends Controller
 											
 			// return redirect()->action('OrderController@getList')->withErrors($errors);
 
-            $file = "/var/www/order.monogramonline.com/Store.json";
+            $file = "/var/www/5p_oms/Store.json";
 
             $data = [];
             if(file_exists($file)) {
@@ -314,6 +316,7 @@ class StoreController extends Controller
 
 
             $qb_summary = Ship::join('stores', 'shipping.store_id', '=', 'stores.store_id')
+                                                ->has('order')
 												->selectRaw('stores.store_id, stores.store_name, COUNT(*) as count')
 												->whereNull('shipping.qb_export')
 												->where('stores.qb_export', '1')
@@ -322,6 +325,7 @@ class StoreController extends Controller
 												->get();
 			
 			$csv_summary = Ship::join('stores', 'shipping.store_id', '=', 'stores.store_id')
+                                                ->has('order')
 												->selectRaw('shipping.store_id, stores.store_name, COUNT(*) as count')
 												->whereNull('shipping.csv_export')
 												->where('stores.ship', '4')
@@ -338,27 +342,17 @@ class StoreController extends Controller
 									->pluck('store_name', 'store_id');
 
 
-
-            $file = "/var/www/order.monogramonline.com/Store.json";
-
-            $data = [];
-            if(file_exists($file)) {
-                $data = json_decode(file_get_contents($file), true);
-            }
-
-
             /*
              * Get all the stores that has dropshipment stuff
              */
-            $storesNew =  Cache::remember("stores_all", 1, function() {
-                return Store::all();
-            });
+            $storesNew =  Store::all();
 
 
+//            dd(Cache::get('SKU_TO_INVENTORY_ID')['ALL']);
             /*
              * Store.json
              */
-            $file = "/var/www/order.monogramonline.com/Store.json";
+            $file = "/var/www/5p_oms/Store.json";
 
             $data = [];
             if(file_exists($file)) {
@@ -388,6 +382,8 @@ class StoreController extends Controller
                             ->whereNotIn("id", Cache::get("SHIPMENT_CACHE"))
                             ->get();
 
+//                        dd($toAdd);
+
                         if (count($toAdd) != 0) {
                             Cache::forget("stores_items_$id");
                             Cache::add("stores_items_$id", $toAdd, 60 * 24);
@@ -409,9 +405,9 @@ class StoreController extends Controller
                 }
             }
 
+            $vendors = $this->vendors;
 
-
-			return view('stores.export_summary', compact('qb_summary', 'csv_summary', 'stores', "dropship"));
+			return view('stores.export_summary', compact('qb_summary', 'csv_summary', 'stores', "dropship", "vendors"));
 		}
 		
 		public function exportDetails(Request $request)
@@ -446,8 +442,10 @@ class StoreController extends Controller
 				$field = 'csv_export';
 			}
 
+            // TODD::NEED TO CONFIRM ->has('order') is correct OR WE DELETE THAT SHIPS THAT DOESN'T HAVE ORDER
             if(!$request->has("dropship")) {
                 $details = Ship::with('order')
+//                    ->has('order')
                     ->where('store_id', $request->get('store_id'))
                     ->whereNull($field)
                     ->where('is_deleted', '0')
@@ -480,6 +478,7 @@ class StoreController extends Controller
 
 
             }
+//            return $details;
 
             $isDropship = count($dropship) !== 0;
 			return view('stores.export_details', compact('title', 'store', 'details', 'type', "dropship", "isDropship"));
@@ -505,11 +504,12 @@ class StoreController extends Controller
 				
 				$store = Store::where('store_id', $request->get('store_id'))->first();
 				$pathToFile = null;
+
 				
 				if ($store->ship == '4')	{
-
-
-
+                    if(empty($store->class_name)){
+                        return redirect()->back()->withErrors('Store class name not available , please discuss with Dev');
+                    }
 					try {
 						$className =  'Market\\' . $store->class_name; 
 						$controller =  new $className;
@@ -621,10 +621,11 @@ class StoreController extends Controller
 		 * Store a newly created resource in storage.
 		 *
 		 * @param  \Illuminate\Http\Request  $request
-		 * @return \Illuminate\Http\Response
-		 */
+		 * @return \Illuminate\Http\RedirectResponse
+         */
 		public function store(StoreCreateRequest $request)
 		{
+                $permissions[]= auth()->user()->id;
 				$sort = Store::selectRaw('MAX(sort_order) as num')->first();
 				
 				$store = new Store;
@@ -673,6 +674,7 @@ class StoreController extends Controller
 				$store->state = $request->get('state');
 				$store->zip = $request->get('zip');
 				$store->phone = $request->get('phone');
+                $store->permit_users = $permissions;
 				
 				$store->save();
 				
@@ -709,7 +711,7 @@ class StoreController extends Controller
 
 			$companies = Store::$companies;
 
-            $file = "/var/www/order.monogramonline.com/Store.json";
+            $file = "/var/www/5p_oms/Store.json";
             $dropship = false;
             $dropshipTracking = false;
 
@@ -779,7 +781,7 @@ class StoreController extends Controller
             /*
         * Create a configuration file for them when they edit them
         */
-            $file = "/var/www/order.monogramonline.com/Store.json";
+            $file = "/var/www/5p_oms/Store.json";
             $template = [
                 "DROPSHIP" => (bool) $request->get('dropship'),
                 "DROPSHIP_IMPORT" => (bool) $request->get("dropship_tracking")
@@ -903,6 +905,36 @@ class StoreController extends Controller
 				return response()->download($pathToFile)->deleteFileAfterSend(false);
 			}
 		}
+
+    public function vendorExport (Request $request) {
+
+//        if (!$request->has('vendor') || !$request->has('start_date') || !$request->has('end_date')) {
+//            return redirect()->back()->withInput()->withErrors('Vendor and dates required to create Quickbooks export');
+//        }
+
+
+
+        $shipments = Ship::with('items','user')
+            ->whereHas('items', function($query) use ($request) {
+                return $query->where('vendor', $request->get('vendor'));
+            })
+//            ->whereIn('store_id', $request->get('store_ids'))
+            ->where('transaction_datetime', '>=', $request->get('start_date') . ' 00:00:00')
+            ->where('transaction_datetime', '<=', $request->get('end_date') . ' 23:59:59')
+            ->where('is_deleted', '0')
+            ->get();
+
+//        dd($shipments);
+//        dd($shipments->first()->items->first()->inventory_unit->first()->inventory->last_cost);
+
+        $pathToFile = Quickbooks::vendorExport($shipments);
+
+        if ($pathToFile != null) {
+            return response()->download($pathToFile)->deleteFileAfterSend(false);
+        }
+
+        return redirect()->back()->withInput()->withErrors('Error creating vendor export file');
+    }
 
     public function qbCsvExport(Request $request)
     {

@@ -3,6 +3,7 @@
 namespace App;
 
 // use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Monogram\Helper;
@@ -192,26 +193,26 @@ class Item extends Taskable
 		}
 	}
 	
-	public function getItemThumbAttribute ($value) 
-	{ 
-		
-		if (substr($value, 0, 31)  != 'http://order.monogramonline.com' && $this->product &&
-				substr($this->product->product_thumb, 0, 31)  == 'http://order.monogramonline.com') {
-					
-				$product = Product::where('product_model', $this->item_code)
-													->select('product_thumb')
-													->first();
-				
-				$thumb = $product->product_thumb;
-				$this->item_thumb = $thumb;
-				$this->save();
-				return $thumb;
-		
-		} 
-		
-		return $value;
-
-	}
+//	public function getItemThumbAttribute ($value)
+//	{
+//
+//		if (substr($value, 0, 31)  != 'http://order.monogramonline.com' && $this->product &&
+//				substr($this->product->product_thumb, 0, 31)  == 'http://order.monogramonline.com') {
+//
+//				$product = Product::where('product_model', $this->item_code)
+//													->select('product_thumb')
+//													->first();
+//
+//				$thumb = $product->product_thumb;
+//				$this->item_thumb = $thumb;
+//				$this->save();
+//				return $thumb;
+//
+//		}
+//
+//		return $value;
+//
+//	}
 	
 	public function scopeSearchStatus ($query, $status)
 	{
@@ -641,6 +642,16 @@ class Item extends Taskable
 			return $query->where('items.store_id', 'REGEXP', implode("|", $values));
 		}
 	}
+
+    public function scopeSearchVendor ($query, $vendor)
+    {
+        if ( empty($vendor) ) {
+            return;
+        }
+
+        return $query->where('items.vendor',  $vendor);
+
+    }
 
     public function scopeWithManufacture ($query, $manufacture_id)
     {

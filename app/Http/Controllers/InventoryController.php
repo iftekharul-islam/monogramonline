@@ -256,7 +256,7 @@ class InventoryController extends Controller
         /*
          * Create a configuration file for them when they edit them
          */
-        $file = "/var/www/order.monogramonline.com/Inventories.json";
+        $file = "/var/www/5p_oms/Inventories.json";
         $template = [
             "DROPSHIP" => false,
             "DROPSHIP_SKU" => "",
@@ -311,7 +311,7 @@ class InventoryController extends Controller
 		$inventoryTbl->last_cost = $request->last_cost;
 		$inventoryTbl->save();
 
-        $file = "/var/www/order.monogramonline.com/Inventories.json";
+        $file = "/var/www/5p_oms/Inventories.json";
         $data = json_decode(file_get_contents($file), true);
 
         $data[$id]['DROPSHIP_COST'] = $request->dropship_cost;

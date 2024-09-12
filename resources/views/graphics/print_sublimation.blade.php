@@ -38,6 +38,20 @@
             clear: both;
         }
 
+        .loading-spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
     </style>
 
 </head>
@@ -55,25 +69,25 @@
         <div class="col-xs-12">
 
             <h4>Send Graphics to Printers</h4>
-            <div class="pull-right">
-                {!! Form::open(['url' => 'graphics/print_all', 'method' => 'POST', 'id' => 'print_all']) !!}
-                <div class="form-group col-xs-10">
-                    @foreach ($batches as $batch)
-                        {!! Form::hidden('print_batches[]', $batch->batch_number) !!}
-                    @endforeach
-                    {!! Form::select('printer', $printers, null,
-                                        ['id' => 'printer', 'class' => 'form-control', 'onclick' => "return false;", 'placeholder' => 'Select Printer' ]) !!}
-                </div>
-                <div class="form-group col-xs-2">
-                    @setvar($msg = 'Are you sure you want to print these files?')
-                    {!! Form::submit('Print All' , ['class' => 'btn btn-sm btn-warning',
-                                                        'onclick' => 'return confirm("' . $msg .'")']) !!}
-                </div>
-                {!! Form::close() !!}
-            </div>
+{{--            <div class="pull-right">--}}
+{{--                {!! Form::open(['url' => 'graphics/print_all', 'method' => 'POST', 'id' => 'print_all']) !!}--}}
+{{--                <div class="form-group col-xs-10">--}}
+{{--                    @foreach ($batches as $batch)--}}
+{{--                        {!! Form::hidden('print_batches[]', $batch->batch_number) !!}--}}
+{{--                    @endforeach--}}
+{{--                    {!! Form::select('printer', $printers, null,--}}
+{{--                                        ['id' => 'printer', 'class' => 'form-control', 'onclick' => "return false;", 'placeholder' => 'Select Printer' ]) !!}--}}
+{{--                </div>--}}
+{{--                <div class="form-group col-xs-2">--}}
+{{--                    @setvar($msg = 'Are you sure you want to print these files?')--}}
+{{--                    {!! Form::submit('Print All' , ['class' => 'btn btn-sm btn-warning',--}}
+{{--                                                        'onclick' => 'return confirm("' . $msg .'")']) !!}--}}
+{{--                </div>--}}
+{{--                {!! Form::close() !!}--}}
+{{--            </div>--}}
 
         </div>
-        <div class="col-xs-12">
+        <div class="col-xs-12" style="margin-bottom: 10px!important;">
             <div class="panel panel-default">
                 <div class="panel-body">
                     {!! Form::open(['method' => 'get', 'url' => 'graphics/print_sublimation', 'name' => 'filter']) !!}
@@ -118,6 +132,11 @@
                     {!! Form::close() !!}
                 </div>
             </div>
+            @if($total_printable_pdf)
+                <div class="col-4 mb-5">
+                    <a href="{{ url('graphics/print_selected/vendor-summary') }}" class="btn btn-sm btn-success" onclick= 'return confirm("Are you want print the summary")'>Printable summary {{ $total_printable_pdf }}</a>
+                </div>
+            @endif
         </div>
         <script type="application/javascript">
             $(document).on('change', '#printer_number_default', function () {
@@ -133,17 +152,72 @@
             });
         </script>
 
-        <div id="content">
+        <div>
             @if(isset ($batches) && count($batches) > 0)
                 <h4>{{ count($batches) }} batches found</h4>
+            <div class="row">
+                <div class="col-6" style="display: grid">
+                    <div>
+                        {!! Form::open(['url' => 'graphics/print_selected', 'method' => 'POST', 'id' => 'print_all']) !!}
+                        <input type="hidden" id="scale_values" name="scale_values[]">
+                        <div class="form-group col-xs-2">
+                            {{--                        @foreach ($batches as $batch)--}}
+                            {{--                            {!! Form::hidden('print_batches[]', $batch->batch_number) !!}--}}
+                            {{--                        @endforeach--}}
+                            <input type="hidden" id="print_sublimation" name="print_batches[]">
+                            {!! Form::select('printer', $printers, null,
+                                                ['id' => 'printer', 'class' => 'form-control', 'onclick' => "return false;", 'placeholder' => 'Select Printer' ]) !!}
+                        </div>
+                        <div class="form-group col-xs-2">
+                            @setvar($msg = 'Are you sure you want to print these files?')
+                            {!! Form::submit('Print Selected Item' , ['class' => 'btn btn-sm btn-warning',
+                                                                'onclick' => 'return confirm("' . $msg .'")']) !!}
+                        </div>
+                        {!! Form::close() !!}
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div>
+                        {!! Form::open(['url' => 'graphics/print_selected/vendor', 'method' => 'POST', 'id' => 'print_all']) !!}
+                        <input type="hidden" id="scale_values" name="scale_values[]">
+                        <div class="form-group col-xs-2">
+                            <input type="hidden" id="vendor_print_sublimation" name="print_batches[]">
+                            {!! Form::select('vendor', $vendors, null,
+                                                ['id' => 'printer', 'class' => 'form-control', 'onclick' => "return false;", 'placeholder' => 'Select vendors' ]) !!}
+                        </div>
+                        <div class="form-group col-xs-2">
+                            @setvar($msg = 'Are you sure you want to print these files?')
+                            {!! Form::submit('Send Selected Item' , ['class' => 'btn btn-sm btn-warning',
+                                                                'onclick' => 'return confirm("' . $msg .'")']) !!}
+                        </div>
+                        {!! Form::close() !!}
+                    </div>
+                </div>
+                @if($total_printable_pdf)
+                    <div class="col-4">
+                        <a href="{{ url('graphics/print_selected/vendor-summary') }}" class="btn btn-sm btn-success" onclick= 'return confirm("Are you want print the summary")'>Printable summary {{ $total_printable_pdf }}</a>
+                    </div>
+                @endif
+            </div>
+
                 <table class="table">
                     <tbody>
-                    @foreach($batches as $batch)
+                    <tr>
+                        <td colspan="2">
+                            <input type="checkbox" id="checkAll">  <label for="checkAll" class="badge badge-danger" style="border-radius: 4px!important; background: #c0a16b">Check First 10 items</label>
+                        </td>
+                    </tr>
+                    @foreach($batches ?? [] as $key=>$batch)
                         @if ($batch->to_printer_date != NULL)
                             <tr bgcolor="#ffffe6">
                         @else
                             <tr>
                                 @endif
+                                <td>
+                                    <label>
+                                        <input type="checkbox" class="batchCheckbox" value="{{ $batch->batch_number }}">
+                                    </label>
+                                </td>
                                 <td width="400">
                                     <a href="{{ url(sprintf('batches/details/%s', $batch->batch_number)) }}"
                                        target="_blank">
@@ -213,20 +287,21 @@
                                             </div>
                                         </div>
                                     @else
-                                        <div class="print-group" onclick="return false;">
-                                            <div class="col-xs-12">
-                                                {!! Form::open(['id' => 'move_form_' . $batch->batch_number . rand(10,99)]) !!}
-                                                {!! Form::hidden('batch_number', $batch->batch_number) !!}
-                                                <div class="form-group col-xs-10">
-                                                    {!! Form::select('printer', $printers, null,
-                                                                                          ['id' => 'printer_select_' . $batch->batch_number, 'class' => 'form-control printer-option', 'onclick' => "return false;", 'placeholder' => 'Select Printer']) !!}
-                                                </div>
-                                                <div class="form-group col-xs-2">
-                                                    {!! Form::button('Send' , ['id'=>'move_' . $batch->batch_number, 'class' => 'btn btn-sm btn-default', 'style' => 'margin-top: 3px;']) !!}
-                                                </div>
-                                                {!! Form::close() !!}
-                                            </div>
-                                        </div>
+{{--                                        <div class="print-group" onclick="return false;">--}}
+{{--                                            <div class="col-xs-12">--}}
+{{--                                                {!! Form::open(['id' => 'move_form_' . $batch->batch_number . rand(10,99)]) !!}--}}
+{{--                                                {!! Form::hidden('batch_number', $batch->batch_number) !!}--}}
+{{--                                                <div class="form-group col-xs-10">--}}
+{{--                                                    {!! Form::select('printer', $printers, null,--}}
+{{--                                                                                          ['id' => 'printer_select_' . $batch->batch_number, 'class' => 'form-control printer-option', 'onclick' => "return false;", 'placeholder' => 'Select Printer']) !!}--}}
+{{--                                                </div>--}}
+{{--                                                <div class="form-group col-xs-2">--}}
+{{--                                                    {!! Form::button('Send' , ['id'=>'move_' . $batch->batch_number, 'class' => 'btn btn-sm btn-default sent_button', 'style' => 'margin-top: 3px;']) !!}--}}
+{{--                                                    <div class="disabledMessage"></div>--}}
+{{--                                                </div>--}}
+{{--                                                {!! Form::close() !!}--}}
+{{--                                            </div>--}}
+{{--                                        </div>--}}
                                     @endif
 
                                     <div class="print-message" style="display:none;" onclick="return false;">
@@ -239,18 +314,87 @@
 
 
                                 </td>
+                                <?php
+                                    $itemOption = json_decode($batch->items->first()->item_option, true);
+                                    $item = $batch->items->first();
+                                    $file = \Monogram\ImageHelper::getImageInfo($itemOption['Custom_EPS_download_link']);
+                                ?>
                                 <td width="100">
                                     @if ($batch->items && count($batch->items) > 0 && $batch->items->first()->child_sku)
-                                        <span data-toggle="tooltip" data-placement="top"
-                                              title="{{ $batch->items->first()->child_sku }}">
-			                    <a href="{{ url(sprintf('batches/details/%s', $batch->batch_number)) }}"
-                                   target="_blank">
-													<img src="{{ $batch->items->first()->item_thumb }}" width="50"
-                                                         height="50"/></a>
-			                  </span>
+                                            <span data-toggle="tooltip" data-placement="top"
+                                                  title="{{ $batch->items->first()->child_sku }}">
+                                        <a href="{{ url(sprintf('batches/details/%s', $batch->batch_number)) }}"
+                                       target="_blank">
+                                                        <img src="{{ $batch->items->first()->item_thumb }}" width="50"
+                                                             height="50"/></a>
+                                            </span>
+                                        <br>
+                                        @if(isset($file) && $file['status'])
+
+                                            <a href="{{ url('make-image-mirror/'. basename($itemOption['Custom_EPS_download_link']) . '/' . basename($item->item_thumb) ) }}" data-toggle="tooltip" class="btn btn-primary btn-xs" data-placement="top" title="Mirror the image">
+                                                <span class="glyphicon glyphicon-transfer"></span>
+                                            </a>
+                                            <a href="{{ url('make-image-rotate/'. basename($itemOption['Custom_EPS_download_link']) . '/' . basename($item->item_thumb) ) }}" data-toggle="tooltip" class="btn btn-primary btn-xs" data-placement="top" title="90 degree rotate">
+                                                <span class="glyphicon glyphicon-repeat"></span>
+                                            </a>
+                                            <a href="#" data-toggle="modal" data-target="#myModal2" class="btn btn-primary btn-xs">
+                                                <span class="glyphicon glyphicon-scissors"></span>
+                                            </a>
+
+                                            <!-- The Modal -->
+                                            <div class="modal fade" id="myModal2" role="dialog">
+                                                <div class="modal-dialog modal-sm">
+
+                                                    <!-- Modal content-->
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <h5 class="modal-title">Image Resize by inch
+                                                                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                                            </h5>
+                                                        </div>
+                                                        <form action="{{ url('make-image-resize') }}" method="POST">
+                                                            {{ csrf_field() }}
+                                                            <input type="hidden" name="image" value="{{ basename($itemOption['Custom_EPS_download_link']) }}">
+                                                            <div class="modal-body">
+                                                                <input type="text" class="form-control" placeholder="Enter Width by inch" name="width" aria-describedby="basic-addon1" required>
+                                                                <input type="text" class="form-control" placeholder="Enter Height by inch" name="height" aria-describedby="basic-addon1" required>
+                                                                <input type="text" class="form-control" placeholder="Enter DPI" name="dpi" aria-describedby="basic-addon1" required>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                                                <button type="submit" class="btn btn-primary">Submit</button>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+
+                                                </div>
+                                            </div>
+
+                                        @endif
                                     @endif
                                 </td>
                                 <td width="400">
+                                    Mirror:
+                                    @if(isset($batch->items->first()->parameter_option) && $batch->items->first()->parameter_option->mirror)
+                                        <span class="badge badge-primary">Yes</span>
+                                    @else
+                                        <span class="badge badge-danger">No</span>
+                                    @endif
+                                    <br>
+                                    <span width="100">
+
+                                        @if(isset($file) && $file['status'])
+                                            <span >Image Size </span>
+                                            <b>{{ $file['image_size'] }}</b>
+                                            <br>
+                                            <span >Image </span>
+                                            <b>{{ $file['image_dpi'] }} DPI</b>
+                                            <br>
+                                        @else
+                                            <b>{{ $file['message'] }}</b>
+                                            <br>
+                                        @endif
+                                    </span>
                                     @if($batch->type  == 'P')
                                         <strong style="color: red;">IN PRODUCTION:</strong>
                                         <br>
@@ -259,7 +403,9 @@
                                         <br>
                                     @endif
                                     @if ($batch->production_station)
-                                        Give to: {{ $batch->production_station->station_description }}
+                                        Give to: {{ $batch->production_station->station_description ?? 'Not available' }}
+                                        <br>
+                                        <strong>( {{ $batch->route->batch_code }} - {{$batch->route->batch_route_name}} )</strong>
                                         <br>
                                     @else
                                         PRODUCTION STATION NOT FOUND: {{ $batch->production_station_id }}
@@ -268,26 +414,58 @@
                                     @if ($batch->status != 'active')
                                         Batch Status: <strong style="color: red;">{{ $batch->status }}</strong>
                                     @endif
-                                    <br>
                                     First Order Date: {{ substr($batch->min_order_date, 0, 10) }}
                                 </td>
 
                                 <td>
                                     Graphic
 									<br>
-									QTY: {{ $batch->items->first()->item_quantity }}
+									QTY: {{ !empty($batch->items->first()->item_quantity) ? $batch->items->first()->item_quantity : 'Not available' }}
                                 </td>
                                 <td>
                                     @if($batch->graphic_found == 'Found' or $batch->graphic_found == 'Unknown')
-                                        <a href="{{ url(sprintf('batches/view_graphic?batch_number=%s',$batch->batch_number)) }}"
-                                           target="_blank">View Graphics</a>
+
+                                        <a href="#" data-toggle="modal" data-target="#myModal-{{$key}}">
+                                            View Graphics
+                                        </a>
+
+{{--                                        <a href="{{ url(sprintf('batches/view_graphic?batch_number=%s',$batch->batch_number)) }}"--}}
+{{--                                           target="_blank">View Graphics</a>--}}
+
+                                        <!-- The Modal -->
+                                        <div class="modal fade" id="myModal-{{$key}}" role="dialog">
+                                            <div class="modal-dialog">
+
+                                                <!-- Modal content-->
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        @foreach($batch->items as $item)
+                                                            @if($item->item_thumb)
+                                                                <img src="{{ $item->item_thumb }}" alt="Image in Modal" class="img-responsive">
+                                                            @elseif($item->product)
+                                                                <img src="{{ $item->product->product_thumb }}" alt="Image in Modal" class="img-responsive">
+                                                            @endif
+                                                        @endforeach
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                                    </div>
+                                                </div>
+
+                                            </div>
+                                        </div>
                                     @endif
+                                        <br>
+                                        <b>{{$batch->items->first()->child_sku ?? ''}}</b>
                                 </td>
                                 <td width="200">
                                     <table cellpadding="5">
                                         <tr>
                                             <td align="right">Scale:</td>
-                                            <td>{!! Form::number('scale', 100, ['id' => 'scale_' . $batch->batch_number, 'onclick' => 'return false;']) !!}
+                                            <td>{!! Form::number('scale', $batch->route->scale ?? 100, ['id' => 'scale_' . $batch->batch_number, 'class'=>'scale_']) !!}
                                                 %
                                             </td>
 
@@ -295,12 +473,14 @@
                                                 Pdf:
                                             </td>
                                             <td>
-                                                {!! Form::checkbox(
-                                                'pdf', 1,
-                                                in_array(substr($batch->items->first()->child_sku, -4), ['5060', '3040']),
-                                                ['id' => 'pdf_' . $batch->batch_number]
-                                                )
-                                                !!}
+                                                @if(!empty($batch->items->first()->child_sku))
+                                                    {!! Form::checkbox(
+                                                    'pdf', 1,
+                                                    in_array(substr($batch->items->first()->child_sku, -4), ['5060', '3040']),
+                                                    ['id' => 'pdf_' . $batch->batch_number]
+                                                    )
+                                                    !!}
+                                                @endif
                                             </td>
                                         </tr>
                                         <!-- <tr>
@@ -331,25 +511,23 @@
                                                 - {{ $reject->rejection_message }}
                                             </td>
                                         </tr>
-                                        @endforeach
-                                        @endif
-                                        @endforeach
-                                        </td>
-                                        </tr>
+                                    @endforeach
+                                @endif
+                            @endforeach
                     @endforeach
                 </table>
             @elseif (isset($summary) and count($summary) > 0)
                 <table class="table">
                     <tr>
-                        <th>Production Station</th>
+                        <th>Production Station </th>
                         <th>First order</th>
                         <th width=200 style="text-align:right;">Batches</th>
                     </tr>
 
                     @foreach ($summary as $row)
                         <tr>
-                            <td>{{ $row->production_station->station_description }}</td>
-                            <td>{{ substr( $row->date, 0, 10 ) }}</td>
+                            <td>{{ $row->production_station->station_description ?? 'N/A' }}</td>
+                            <td>{{ $row->date ? substr( $row->date, 0, 10 ) : 'N/A' }}</td>
                             <td align="right">
                                 <a href="{{ url(sprintf("graphics/print_sublimation?status=movable&graphic_found=1&section=6&station=92&production_station_id=%s&from_date=$from_date&to_date=$to_date", $row->production_station_id)) }}"
                                    target="_blank">{{ $row->count }}</a>
@@ -442,6 +620,44 @@
 </div>
 
 <script type='text/javascript'>
+    function updateScale(element, batchNumber) {
+        // Get the new value
+        let newValue = element.value;
+        // Make an AJAX request
+        $.ajax({
+            url: '{{ url("graphics/update-batch-scale") }}' + "/" + batchNumber +"/"+  newValue,
+            type: 'get',
+            success: function(response) {
+                // Handle the success response
+                console.log('AJAX request successful:');
+            },
+            error: function(error) {
+                // Handle the error
+                console.error('AJAX request failed:', error);
+            }
+        });
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+        const buttonContainer = document.body; // Use the appropriate container element
+
+        buttonContainer.addEventListener('click', function(event) {
+            if (event.target.classList.contains('sent_button')) {
+                // Disable all buttons with the class 'sent_button'
+                const sentButtons = document.querySelectorAll('.sent_button');
+                sentButtons.forEach(button => {
+                    button.disabled = true;
+                    // button.addClass('d-none');
+                });
+
+                // Show the disabled message for all buttons
+                const disabledMessages = document.querySelectorAll('.disabledMessage');
+                disabledMessages.forEach(message => {
+                    message.addClass('loading-spinner')
+
+                });
+            }
+        });
+    });
 
     $('#store_id').multiselect({
         includeSelectAllOption: true,
@@ -454,11 +670,11 @@
         numberDisplayed: 1,
     });
 
-    $(document).ready(function () {
-        setTimeout(function () {
-            $(".print-group").hide();
-        }, 120000);
-    });
+    // $(document).ready(function () {
+    //     setTimeout(function () {
+    //         $(".print-group").hide();
+    //     }, 120000);
+    // });
 
     var picker = new Pikaday(
         {
@@ -478,55 +694,56 @@
 
         $('button[id^="move_"]').on('click', function (e) {
 
-            form_name = "#" + $(this).closest('form').attr('id');
-            e.preventDefault();
+            // form_name = "#" + $(this).closest('form').attr('id');
+            // e.preventDefault();
+            //
+            // if ($(form_name).parent().parent().attr('class').indexOf('print-group') !== -1) {
+            //     $(form_name).parent().parent().hide();
+            //
+            //     $(form_name).closest("tr").find('.print-message').show();
+            // }
+            //
+            // var batch_number = $(form_name).find('input[name="batch_number"]').val();
+            // var scale = $("#scale_" + batch_number).val();
+            // // var minsize = $("#minsize_" + batch_number).val();
+            // // var mirror = $("#mirror_" + batch_number).val();
+            //
+            // $(form_name).append("<input type='hidden' name='scale' value='" + scale + "'>");
+            // // $( form_name ).append("<input type='hidden' name='minsize' value='"+ minsize +"'>");
+            // // $( form_name ).append("<input type='hidden' name='mirror' value='"+ mirror +"'>");
+            //
+            // if ($("#pdf_" + batch_number).is(':checked') === true) {
+            //     $(form_name).append("<input type='hidden' name='pdf' value='1'>")
+            // } else {
+            //     $(form_name).append("<input type='hidden' name='pdf' value='0'>")
+            // }
 
-            if ($(form_name).parent().parent().attr('class').indexOf('print-group') !== -1) {
-                $(form_name).parent().parent().hide();
-
-                $(form_name).closest("tr").find('.print-message').show();
-            }
-
-            var batch_number = $(form_name).find('input[name="batch_number"]').val();
-            var scale = $("#scale_" + batch_number).val();
-            // var minsize = $("#minsize_" + batch_number).val();
-            // var mirror = $("#mirror_" + batch_number).val();
-
-            $(form_name).append("<input type='hidden' name='scale' value='" + scale + "'>");
-            // $( form_name ).append("<input type='hidden' name='minsize' value='"+ minsize +"'>");
-            // $( form_name ).append("<input type='hidden' name='mirror' value='"+ mirror +"'>");
-
-            if ($("#pdf_" + batch_number).is(':checked') === true) {
-                $(form_name).append("<input type='hidden' name='pdf' value='1'>")
-            } else {
-                $(form_name).append("<input type='hidden' name='pdf' value='0'>")
-            }
 
 
-            $.ajax({
-                type: 'post',
-                url: '{{ url("graphics/move_to_print") }}',
-                data: $(form_name).serialize(),
-                context: this,
-                success: function (response) {
-                    if (response == 'Batch Summary Creation Error') {
+            {{--$.ajax({--}}
+            {{--    type: 'post',--}}
+            {{--    url: '{{ url("graphics/move_to_print") }}',--}}
+            {{--    data: $(form_name).serialize(),--}}
+            {{--    context: this,--}}
+            {{--    success: function (response) {--}}
+            {{--        if (response == 'Batch Summary Creation Error') {--}}
 
-                        console.log("Trying request now... ");
-                        // httpGet("https://order.monogramonline.com/fix/image-load/link/" + batch_number)
-                        // $(this).closest("tr").find('.print-message').html("Batch Summary Creation Error, Please wait while we retry in 10 seconds!")
-                        // setTimeout(function (){
-                        // 	$('#' + e.target.id).click();
-                        // }, 10000)
-                        return;
+            {{--            console.log("Trying request now... ");--}}
+            {{--            // httpGet("https://order.monogramonline.com/fix/image-load/link/" + batch_number)--}}
+            {{--            // $(this).closest("tr").find('.print-message').html("Batch Summary Creation Error, Please wait while we retry in 10 seconds!")--}}
+            {{--            // setTimeout(function (){--}}
+            {{--            // 	$('#' + e.target.id).click();--}}
+            {{--            // }, 10000)--}}
+            {{--            return;--}}
 
-                    }
-                    $(this).closest("tr").find('.print-message').html(response);
+            {{--        }--}}
+            {{--        $(this).closest("tr").find('.print-message').html(response);--}}
 
-                },
-                failure: function (response) {
-                    $(this).closest("tr").find('.print-message').html('Failure');
-                }
-            });
+            {{--    },--}}
+            {{--    failure: function (response) {--}}
+            {{--        $(this).closest("tr").find('.print-message').html('Failure');--}}
+            {{--    }--}}
+            {{--});--}}
 
         });
 
@@ -562,6 +779,67 @@
         console.log(xmlHttp.responseText)
         return xmlHttp.responseText;
     }
+
+    //for selected batch
+    document.addEventListener('DOMContentLoaded', function() {
+        const printSublimationInput = document.getElementById('print_sublimation');
+        const vendorPrintSublimationInput = document.getElementById('vendor_print_sublimation');
+        let allScales = document.getElementById('scale_values');
+        const batchCheckboxes = document.querySelectorAll('.batchCheckbox');
+        const checkAllCheckbox = document.getElementById('checkAll');
+
+        batchCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', updatePrintSublimation);
+        });
+
+        checkAllCheckbox.addEventListener('change', function() {
+            const checkboxesArray = Array.from(batchCheckboxes);
+            checkboxesArray.slice(0, 10).forEach(checkbox => {
+                checkbox.checked = checkAllCheckbox.checked;
+            });
+            updatePrintSublimation(); // Call the function when "Check All" changes
+        });
+
+        const scaleInputs = document.querySelectorAll('.scale_'); // Assuming 'scale_' is the class of your Form::number inputs
+
+        scaleInputs.forEach(scaleInput => {
+            scaleInput.addEventListener('change', updatePrintSublimation);
+        });
+
+        function updatePrintSublimation() {
+            const selectedBatches = Array.from(batchCheckboxes)
+                .filter(checkbox => checkbox.checked)
+                .map(checkbox => checkbox.value);
+
+            printSublimationInput.value = selectedBatches.join(',');
+            vendorPrintSublimationInput.value = selectedBatches.join(',');
+            console.log(printSublimationInput.value);
+
+            // Update the scale value using the selected batch number
+            const scaleValues = selectedBatches.map(batchNumber => {
+                const scaleValue = document.getElementById('scale_' + batchNumber).value;
+                return scaleValue;
+            });
+
+            allScales.value = scaleValues.join(',');
+            console.log('Scale values:', allScales);
+
+            // if (selectedBatches.length > 0) {
+            //     const selectedBatchNumber = selectedBatches[selectedBatches.length - 1]; // Assuming you want the first selected batch
+            //     let scaleValue = document.getElementById('scale_' + selectedBatchNumber).value;
+            //     let scaleInput;
+            //     scaleInput = scaleValue;
+            //     console.log('Scale value:', scaleInput);
+            //
+            //     // Optionally, you can call the 'updateScale' function here if needed
+            //     // updateScale(scaleInput, selectedBatchNumber);
+            // } else {
+            //     // Handle the case when no batch is selected
+            //     scaleInput.value = ''; // Clear the scale value
+            // }
+        }
+    });
+
 </script>
 
 </body>

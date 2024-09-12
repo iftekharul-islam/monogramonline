@@ -136,7 +136,11 @@ class ShipStationImport
             // Andre added
              'ship via',
              'Ship By Date',
-            "pws_zakeke"
+            "pws_zakeke",
+            'Personalization',
+            'orderTotal',
+            'taxAmount',
+            'shippingAmount',
             //  'Status',
             //  'P1',
             // 'P2',
@@ -192,6 +196,7 @@ class ShipStationImport
                 $error[] = $item_result;
             }
 
+            // TODO:: here just counting the items and skipping the totals
             $this->setOrderTotals($order_5p);
 
         }
@@ -262,9 +267,9 @@ class ShipStationImport
         $order->order_id = $storeid . '-' . $data[0];
         $order->short_order = $data[0];
         $order->item_count = 1;
-        $order->shipping_charge = '0';
-        $order->tax_charge = '0';
-        $order->total = 0;
+        $order->shipping_charge = isset($data[23]) ? $data[23] : 0;
+        $order->tax_charge = isset($data[22]) ? $data[22] : 0;
+        $order->total = isset($data[21]) ? $data[21] : 0;
         $order->order_date = date("Y-m-d H:i:s");
         $order->store_id = $storeid;
         $order->ship_state = $data[5];
@@ -363,6 +368,10 @@ class ShipStationImport
 
         $options = array();
 
+        if (isset($data[20]) && trim($data[20]) != '') {
+            $options['Personalization'] = $data[20];
+        }
+
         if (isset($data[10]) && trim($data[10]) != '') {
             $options['Color'] = $data[10];
         }
@@ -412,7 +421,7 @@ class ShipStationImport
                 return;
             }
             $order->item_count = $order->items->count();
-            $order->total = $order->items->sum( function ($i) { return $i->item_quantity * $i->item_unit_price; });
+//            $order->total = $order->items->sum( function ($i) { return $i->item_quantity * $i->item_unit_price; });
             $order->save();
             return;
         }

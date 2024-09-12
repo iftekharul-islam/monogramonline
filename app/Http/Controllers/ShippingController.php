@@ -37,6 +37,7 @@ class ShippingController extends Controller
 
     public function index(Request $request)
     {
+
         $label = null;
         $error = null;
         $reminder = $request->get('reminder');
@@ -153,7 +154,6 @@ class ShippingController extends Controller
                     ];
                 }
             }
-
             if ($request->get('origin') == 'QC' && $request->has('batch_number')) {
 
                 $batch = Batch::find($request->get('id'));
@@ -163,7 +163,7 @@ class ShippingController extends Controller
                         ->withErrors(['error' => 'Batch Number not correct']);
                 }
 
-
+//                dd($request->get('origin'), $request->get('order_id'), $request->get('batch_number'), $packages, $item_ids, $params);
                 $ship_info = $shipper->createShipment($request->get('origin'), $request->get('order_id'), $request->get('batch_number'), $packages, $item_ids, $params);
 	
                 if (is_array($ship_info) && isset($ship_info['reminder'])) {
@@ -204,7 +204,7 @@ class ShippingController extends Controller
                 }
 
             } elseif ($request->get('origin') == 'WAP') {
-
+//                dd('here on after 1',$request->get('origin'), $request->get('order_id'), null, $packages, $item_ids, $params);
                 $ship_info = $shipper->createShipment($request->get('origin'), $request->get('order_id'), null, $packages, $item_ids, $params);
 
                 if (is_array($ship_info) && isset($ship_info['reminder'])) {
@@ -226,7 +226,7 @@ class ShippingController extends Controller
                 }
 
             } else if ($request->get('origin') == 'OR') {
-
+//                dd($request->get('origin'), $request->get('order_id'), null, $packages, $item_ids, $params);
                 $ship_info = $shipper->createShipment(
                     $request->get('origin'), $request->get('order_id'), null, $packages, $item_ids, $params
                 );
@@ -439,6 +439,11 @@ class ShippingController extends Controller
 //        $dhlManifestDate = $request->get("dhlManifest_date");
         $dhl = new DHL();
         $dhl->getDhlInternationalManifest($request->get("dhlInternationalManifest_date"));
+    }
+
+    public function shipFinal(Request $request)
+    {
+        return $request->all();
     }
 
 }

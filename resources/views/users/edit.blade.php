@@ -51,6 +51,15 @@
 							</div>
 						</div>
 						<div class = "form-group">
+							{!!Form::label('vendor','Vendor :',['class'=>'control-label col-xs-2'])!!}
+							<div class = "col-xs-5">
+								<?php
+									$vendors = ['' => 'Select vendor'] + $vendors;
+								?>
+								{!! Form::select('vendor', $vendors, $user->vendor ?? null, ['class' => 'form-control']) !!}
+							</div>
+						</div>
+						<div class = "form-group">
 							{!!Form::label('remote','Remote Access:',['class'=>'control-label col-xs-2'])!!}
 							<div class = "col-xs-5">
 								{!! Form::checkbox('remote', 1, $user->remote == 1 ? true : null, ['id' => 'remote', 'style' => 'margin-top:10px;']) !!}

@@ -8,6 +8,7 @@ use App\Order;
 use App\Ship;
 use App\ShipmentManifest;
 use App\Wap;
+use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Monogram\Helper;
@@ -205,7 +206,7 @@ class Shipper
         }
 
         if (count($items) < 1) {
-                return 'ERROR: No items to Ship. Order: ' . $order_id . ' Batch: ' . $batch_number;
+            return 'ERROR: No items to Ship. Order: ' . $order_id . ' Batch: ' . $batch_number;
         }
 
         $unique_order_id = $this->generateShippingUniqueId($order->id);
@@ -213,16 +214,21 @@ class Shipper
 
         $total_amount = $items->sum('amount');
         $item_ids = array_column($items->toArray(), 'id');
+
+
+//        dd($origin, $order_id, $batch_number, $packages, $item_ids, $params, $order);
+
+
         if ($order->carrier == 'UP') {   # UP = UPS
             $carrier = new UPS;
             $trackingInfo = $carrier->getLabel($order->store, $order, $unique_order_id, $order->method, $packages);
         } elseif ($order->carrier == 'FX') {    # FX = FEDEX
             $carrier = new \Ship\FEDEX;;
             $trackingInfo = $carrier->getLabel($order->store, $order, $unique_order_id, $order->method, $packages);
-        } elseif ($order->carrier == 'US') {    # USPS = FEDEX
+        } elseif ($order->carrier == 'US' || $order->carrier == null) {    # USPS = FEDEX
             $carrier = new Post;
             $trackingInfo = $carrier->getLabel($order->store, $order, $unique_order_id, $order->method, $packages[0], $params, $items);
-
+//            logger('trackingInfo ', [$trackingInfo]);
             $shipmentManifest = new ShipmentManifest();
             $shipmentManifest->ship_id = $trackingInfo['ship_id'] ?? uniqid("SHIP");
             $shipmentManifest->tracking_code = $trackingInfo['tracking_number'] ?? uniqid("TRACK");
@@ -230,7 +236,7 @@ class Shipper
             $shipmentManifest->ship_from = $trackingInfo['ship_from'] ?? uniqid("SHIP-FROM");
             $shipmentManifest->batched = 0;
             $shipmentManifest->save();
-        } elseif ($order->carrier == 'DL' || $order->carrier == null) {    # DL = DHL
+        } elseif ($order->carrier == 'DL') {    # DL = DHL
             $carrier = new DHL;
             $trackingInfo = $carrier->getLabel($order->store, $order, $unique_order_id, $order->method, $packages);
         } elseif ($order->carrier == 'EN') {
@@ -375,13 +381,25 @@ class Shipper
                 $item->item_status = 2;
                 $item->save();
 
-                $this->setOrderFulfillment(
-                    $order->short_order, # Shopefi Order_ID = 2112301105285
-                    $item->item_id,
-                    $item->item_quantity,
-                    (string) $trackingInfo['tracking_number'],
-                    $trackingInfo['mail_class']
-                ); // method = $trackingCompany
+                // Deprecated
+//                $this->setOrderFulfillment(
+//                    $order->short_order, # Shopefi Order_ID = 2112301105285
+//                    $item->item_id,
+//                    $item->item_quantity,
+//                    (string) $trackingInfo['tracking_number'],
+//                    $trackingInfo['mail_class']
+//                ); // method = $trackingCompany
+
+                // Update tracking number to shopify
+                logger('Process for update tracking number to shopify for item id: ' . $item->item_id);
+                $updateShopify = $this->updateTrackingNumberToShopify($order, $item, $trackingInfo);
+                if (!empty($updateShopify['status']) && !empty($updateShopify['message'])){
+                    logger('update tracking number to shopify success');
+                    $item->tracking_synced = $updateShopify['status'];
+                    $item->tracking_msg = $updateShopify['message'];
+                    $item->save();
+                }
+                logger('Update Tracking Number To Shopify ended');
 
                 if ($item->batch_number != '0') {
                     Batch::isFinished($item->batch_number);
@@ -420,6 +438,54 @@ class Shipper
         }
     }
 
+    /**
+     * @param $order
+     * @param $item
+     * @param $trackingInfo
+     * @return array
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
+    public function updateTrackingNumberToShopify($order, $item, $trackingInfo): array
+    {
+        logger('update Tracking Number To Shopify', [$order->short_order, $item->item_id, $trackingInfo['tracking_number'], $trackingInfo['type'] ?? 'USPS']);
+        // update the tracking number to shopify
+        $apiEndpoint = 'https://7papi.monogramonline.com/shopify-tracking-update';
+
+        // Specify the parameters you want to send
+        $params = [
+            'order_id' => $order->short_order,
+            'line_item_id' => $item->item_id,
+            'tracking_number' => (string) $trackingInfo['tracking_number'],
+            'tracking_url' => \Monogram\Helper::getTrackingUrl($trackingInfo['tracking_number']),
+            'tracking_company' => isset($trackingInfo['type']) ? $trackingInfo['type'] : 'USPS',
+        ];
+        // Initialize a Guzzle client
+        $client = new Client();
+
+        // Make a GET request to the API with the specified parameters
+        $response = $client->request('GET', $apiEndpoint, [
+            'query' => $params,
+        ]);
+
+        // Get the response body as a string
+        $responseBody = $response->getBody()->getContents();
+
+        // Parse the response if it is in JSON format
+        $data = json_decode($responseBody, true);
+
+        if ($data['status'] == 'success') {
+            return [
+                'status' => 1,
+                'message' => $data['message'] ?? 'Tracking number successfully updated to shopify'
+            ];
+        } else {
+            return [
+                'status' => 2,
+                'message' => $data['message'] ?? 'Failed to update tracking number to shopify'
+            ];
+        }
+    }
+
     public function setOrderFulfillment($orderId, $itemLineId, $itemQuantity, $trackingNumber, $trackingCompany)
     {
         $locationId = '37822398597'; // Shipping from which warehouse
@@ -435,8 +501,8 @@ class Shipper
         );
 
         $helper = new Helper;
-        $post_response = $helper->shopify_call("/admin/api/2020-04/orders/" . $orderId . "/fulfillments.json", json_encode($fulfillment), 'POST', array("Content-Type: application/json"));
-       // $post_response = json_decode($post_response['response'], JSON_PRETTY_PRINT); // View Respond result
+        $post_response = $helper->shopify_call("/admin/api/2023-01/orders/" . $orderId . "/fulfillments.json", json_encode($fulfillment), 'POST', array("Content-Type: application/json"));
+        // $post_response = json_decode($post_response['response'], JSON_PRETTY_PRINT); // View Respond result
 
         return true;
     }
@@ -548,8 +614,8 @@ class Shipper
             $description = strlen($in) > 35 ? substr($in,0,35)."..." : $in;
             $zpl .= "^CF0,28^FO50,$pointer^FD$item->id^FS^FO150,$pointer^FD$description^FS";
             $zpl .= "^FO700,$pointer^FD$item->item_quantity^FS";
-         //   $pointer += 30;
-         //   $zpl .= "^FD^FO150,$pointer^FB550,6,,^FD" . Helper::optionTransformer($item->item_option, 1, 0, 0, 1, 0, ' ') . "^FS";
+            //   $pointer += 30;
+            //   $zpl .= "^FD^FO150,$pointer^FB550,6,,^FD" . Helper::optionTransformer($item->item_option, 1, 0, 0, 1, 0, ' ') . "^FS";
             $pointer += 100;
         }
 
@@ -789,6 +855,10 @@ class Shipper
             return 'Item Not Set';
         }
 
+        if(empty($order)){
+            return 'Order Not Found';
+        }
+
         $item_ids = array();
 
         foreach ($items as $item) {
@@ -816,7 +886,8 @@ class Shipper
             } catch (\Exception $exception) {
 
             }
-            Order::note('Tracking number ' . $track_number . ' added to item ' . $item->id, $order->id, $order->order_id);
+            Order::note(
+                'Tracking number ' . $track_number . ' added to item ' . $item->id, $order->id, $order->order_id);
 
         }
 
@@ -889,11 +960,12 @@ class Shipper
 
     public static function listMethods($carrier = null)
     {
-        $methods = array('' => 'DEFAULT SHIPPING',
+        $methods = array('' => 'DEFAULT SHIPPING (USPS Ground Advantage)',
             'MN*' => 'MANUAL SHIPPING',
-            'US*FIRST_CLASS' => 'USPS FIRST_CLASS',
+            'US*FIRST_CLASS' => 'USPS FIRST_CLASS (GroundAdvantage)',
             'US*PRIORITY' => 'USPS PRIORITY',
             'US*EXPRESS' => 'USPS EXPRESS',
+            'US*GROUNDADVANTAGE' => 'USPS Ground Advantage',
             'UP*S_GROUND' => 'UPS GROUND',
             'UP*S_3DAYSELECT' => 'UPS 3DAYSELECT',
             'UP*S_AIR_2DAY' => 'UPS AIR_2DAY',
